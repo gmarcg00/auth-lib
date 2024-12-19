@@ -17,3 +17,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
+security:
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN:'*'}
