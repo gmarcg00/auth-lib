@@ -1,16 +1,14 @@
 package dev.auth.lib.data.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Builder
 @AllArgsConstructor
@@ -58,6 +56,18 @@ public class User implements UserDetails {
         this.password = password;
     }
 
+    public Collection<String> getFlattenRoles() {
+        return roles.stream()
+                .map(Role::getName)
+                .toList();
+    }
+
+    public Collection<String> getFlattenPermissions() {
+        return roles.stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(Permission::getName)
+                .collect(Collectors.toSet());
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

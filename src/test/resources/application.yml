@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    show-sql: true
+security:
+  jwt:
+    secret: cWkgY2xhdmUgZXMgbXV5IHNlZ4VyYSAyMjM0NTY3OCBhYmNkZWZn
+    expiration-access-token: 120
+    expiration-refresh-token: 360
+  cors:
+    allowed-origin: '*'
