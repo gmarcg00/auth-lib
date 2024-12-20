@@ -5,14 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
 @Table(name = "roles")
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
-public class Role {
+public class Role implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, nullable = false)
@@ -31,4 +32,5 @@ public class Role {
         this.name = name;
         this.permissions = permissions;
     }
+
 }
