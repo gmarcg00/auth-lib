@@ -37,7 +37,11 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
+    /**
+     * Method to log in a user
+     * @param request user access data
+     */
+    @PostMapping(value = "/sessions", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LoginResponse> login(HttpServletRequest request, @RequestBody @Validated final LoginRequest loginRequest){
 
         AuthServiceImpl.Tokens tokens = authService.login(loginRequest.getEmail(), loginRequest.getPassword(), request.getRequestURI());

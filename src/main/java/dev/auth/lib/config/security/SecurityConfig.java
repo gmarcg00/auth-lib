@@ -37,8 +37,6 @@ public class SecurityConfig {
                     authReqConfig.requestMatchers(HttpMethod.GET, "/actuator/health").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/users").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/sessions").permitAll();
-                    authReqConfig.requestMatchers(HttpMethod.POST, "/users/signup").permitAll();
-                    authReqConfig.requestMatchers(HttpMethod.POST, "/users/login").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.OPTIONS,"/**").permitAll();
                     authReqConfig.anyRequest().authenticated();
                 })
