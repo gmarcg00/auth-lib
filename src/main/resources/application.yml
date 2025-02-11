@@ -22,3 +22,8 @@ spring:
 security:
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN:'*'}
+
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-access-token: ${EXPIRATION_ACCESS_TOKEN}
+    expiration-refresh-token: ${EXPIRATION_REFRESH_TOKEN}

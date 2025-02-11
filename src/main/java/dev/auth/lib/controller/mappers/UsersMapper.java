@@ -1,7 +1,11 @@
 package dev.auth.lib.controller.mappers;
 
 import dev.auth.lib.controller.model.SignUpRequest;
+import dev.auth.lib.controller.model.response.LoginResponse;
+import dev.auth.lib.data.model.AccessToken;
+import dev.auth.lib.data.model.RefreshToken;
 import dev.auth.lib.data.model.User;
+import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
 
 public class UsersMapper {
 
@@ -11,6 +15,16 @@ public class UsersMapper {
         return User.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
+                .build();
+    }
+
+    public static LoginResponse toLoginResponse(AuthServiceImpl.Tokens tokens) {
+        AccessToken accessToken = tokens.getAccessToken();
+        RefreshToken refreshToken = tokens.getRefreshToken();
+        return LoginResponse.builder()
+                .token(accessToken.getToken())
+                .expirationDate(String.valueOf(accessToken.getExpirationDate()))
+                .refreshToken(refreshToken.getToken())
                 .build();
     }
 }

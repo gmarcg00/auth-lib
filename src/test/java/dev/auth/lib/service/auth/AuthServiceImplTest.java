@@ -1,8 +1,9 @@
 package dev.auth.lib.service.auth;
 
-import dev.auth.lib.data.model.Role;
-import dev.auth.lib.data.model.User;
-import dev.auth.lib.data.model.UserStatus;
+import dev.auth.lib.data.model.*;
+import dev.auth.lib.exception.InvalidCredentialsException;
+import dev.auth.lib.service.authentication.JwtService;
+import dev.auth.lib.service.authentication.RefreshTokenService;
 import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
 import dev.auth.lib.service.users.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,9 +12,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 
+import java.time.Instant;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
@@ -22,15 +28,26 @@ class AuthServiceImplTest {
 
     private static final String USER_STATUS_ACTIVE = "ACTIVE";
     private static final String USER_ROLE = "TEST_ROLE";
+    private static final String USER_TEST = "User test";
     private static final String USER_PASSWORD = "User password";
     private static final String USER_MAIL = "test@mail.com";
     private static final String VERIFICATION_CODE = "abcdefgh";
+    private static final String REQUEST_URI = "http://www.test.com";
 
     @InjectMocks
     private AuthServiceImpl authService;
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private JwtService jwtService;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private AuthenticationManager authenticationManager;
 
     private User inputUser;
 
@@ -63,5 +80,60 @@ class AuthServiceImplTest {
 
         // Then
         verify(userService, times(1)).createUser(inputUser);
+    }
+
+    @Test
+    void testLoginBadCredentials(){
+        // Given
+        Authentication authentication = mock(Authentication.class);
+        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(false);
+
+        // When y Given
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> authService.login(USER_TEST, USER_PASSWORD, REQUEST_URI));
+        assertEquals("Credentials provided by the user are not valid.", exception.getMessage());
+    }
+
+    @Test
+    void testLoginUserNotActive(){
+        // Given
+        Authentication authentication = mock(Authentication.class);
+        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        UserStatus userStatus = UserStatus.builder()
+                .name("VERIFICATION_PENDING")
+                .build();
+        inputUser.setStatus(userStatus);
+        when(authentication.getPrincipal()).thenReturn(inputUser);
+
+        // When
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> authService.login(USER_TEST, USER_PASSWORD, REQUEST_URI));
+        assertEquals("Credentials provided by the user are not valid.", exception.getMessage());
+    }
+
+    @Test
+    void testLoginSuccessful() throws Exception {
+        // Given
+        AutoCloseable ac = mockStatic(Instant.class);
+        when(Instant.now()).thenReturn(Instant.MAX);
+        Authentication authentication = mock(Authentication.class);
+        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        when(authentication.getPrincipal()).thenReturn(inputUser);
+        AuthServiceImpl.Tokens mockTokens = mockTokenGeneration(inputUser);
+
+        // When y Given
+        AuthServiceImpl.Tokens tokens = authService.login(USER_TEST, USER_PASSWORD, REQUEST_URI);
+        assertEquals(tokens, mockTokens);
+
+        ac.close();
+    }
+
+    private AuthServiceImpl.Tokens mockTokenGeneration(User user) {
+        AccessToken accessToken = new AccessToken();
+        when(jwtService.generateAccessToken(user)).thenReturn(accessToken);
+        RefreshToken refreshToken = new RefreshToken();
+        when(refreshTokenService.createRefreshToken(user)).thenReturn(refreshToken);
+        return new AuthServiceImpl.Tokens(accessToken, refreshToken);
     }
 }
