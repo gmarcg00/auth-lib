@@ -4,6 +4,7 @@ import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
+import dev.auth.lib.controller.security.CurrentPrincipal;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.service.authentication.AuthService;
 import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
@@ -13,10 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -47,5 +45,16 @@ public class AuthController {
         AuthServiceImpl.Tokens tokens = authService.login(loginRequest.getEmail(), loginRequest.getPassword(), request.getRequestURI());
         LoginResponse response = UsersMapper.toLoginResponse(tokens);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Method to log out a user
+     */
+    @GetMapping(value = "/sessions")
+    public ResponseEntity<Void> logout(){
+
+        User user = new CurrentPrincipal().getUser();
+        authService.logout(user);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

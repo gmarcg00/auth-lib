@@ -6,7 +6,10 @@ import dev.auth.lib.exception.InvalidCredentialsException;
 import dev.auth.lib.exception.UserWithSameUsernameException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -16,11 +19,13 @@ import java.util.Iterator;
 import java.util.List;
 
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class AuthExceptionHandler {
 
     private static final String INVALID_CREDENTIALS = "INVALID_CREDENTIALS";
     private static final String USERNAME_ALREADY_EXISTS = "USERNAME_ALREADY_EXISTS";
     private static final String INPUT_VALIDATION_ERROR_MESSAGE = "INPUT_VALIDATION_ERROR";
+    private static final String FORBIDDEN = "FORBIDDEN";
 
     @ExceptionHandler(UserWithSameUsernameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -63,5 +68,11 @@ public class AuthExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ExceptionResponse handleLoginAuthenticationException(InvalidCredentialsException ex) {
         return new ExceptionResponse(INVALID_CREDENTIALS, ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ExceptionResponse handleAccessDeniedException(AccessDeniedException ex) {
+        return new ExceptionResponse(FORBIDDEN, "Access to resource not allowed.");
     }
 }

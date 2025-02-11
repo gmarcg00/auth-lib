@@ -7,7 +7,7 @@ spring:
   jpa:
     spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
-    show-sql: true
+    show-sql: false
 security:
   jwt:
     secret: cWkgY2xhdmUgZXMgbXV5IHNlZ4VyYSAyMjM0NTY3OCBhYmNkZWZn

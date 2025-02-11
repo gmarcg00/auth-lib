@@ -5,4 +5,5 @@ import dev.auth.lib.data.model.User;
 
 public interface RefreshTokenService {
     RefreshToken createRefreshToken(User user);
+    void deleteByUser(User user);
 }

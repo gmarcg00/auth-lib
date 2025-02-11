@@ -4,6 +4,7 @@ import dev.auth.lib.data.model.AccessToken;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.utils.DateUtils;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,23 @@ public class JwtServiceImpl implements JwtService {
         Long expiresIn = expirationTokenSeconds;
         String accessToken = generateToken(user, expirationTime);
         return new AccessToken(accessToken, expirationTime, expiresIn, user);
+    }
+
+    @Override
+    public String extractUsername(String jwt) {
+        return extractAllClaims(jwt).getSubject();
+    }
+
+    private Claims extractAllClaims(String jwt) {
+        return Jwts.parser()
+                .verifyWith(generateKey()).build()
+                .parseSignedClaims(jwt)
+                .getPayload();
+    }
+
+    @Override
+    public Long getValidationTokenTime(){
+        return Long.parseLong(expirationTokenTime) * 1000;
     }
 
     private String generateToken(User user, Date expirationDate) {

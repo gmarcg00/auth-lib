@@ -37,8 +37,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
-    public User createUser(User user, List<String> roles) throws RoleNotFoundException {
+    private User createUser(User user, List<String> roles) throws RoleNotFoundException {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserWithSameUsernameException("This username exists in system.");
         }
@@ -52,6 +51,11 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
         return user;
+    }
+
+    @Override
+    public Optional<User> findByEmail(String username) {
+        return userRepository.findByEmail(username);
     }
 
     private void addVerificationCode(User user) {

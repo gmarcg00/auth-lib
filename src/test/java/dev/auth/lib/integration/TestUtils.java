@@ -21,4 +21,9 @@ public class TestUtils {
         File expectedFile = ResourceUtils.getFile("classpath:" + file);
         return new String(Files.readAllBytes(expectedFile.toPath()));
     }
+
+    public static String getStringFromFile(String file) throws IOException {
+        File expectedFile = ResourceUtils.getFile("classpath:" + file);
+        return new String(Files.readAllBytes(expectedFile.toPath()));
+    }
 }
