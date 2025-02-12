@@ -3,7 +3,9 @@ package dev.auth.lib.controller;
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
+import dev.auth.lib.controller.model.request.RefreshTokenRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
+import dev.auth.lib.controller.model.response.RefreshTokenResponse;
 import dev.auth.lib.controller.security.CurrentPrincipal;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.service.authentication.AuthService;
@@ -56,5 +58,17 @@ public class AuthController {
         User user = new CurrentPrincipal().getUser();
         authService.logout(user);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * Method to refresh the token
+     * @param request user access data
+     */
+    @PostMapping(value = "/refresh-token", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RefreshTokenResponse> refreshToken (@RequestBody @Validated final RefreshTokenRequest request){
+
+        AuthServiceImpl.Tokens tokens = authService.refreshToken(request.getRefreshToken());
+        RefreshTokenResponse response = UsersMapper.toRefreshTokenResponse(tokens);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

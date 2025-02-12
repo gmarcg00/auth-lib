@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +23,11 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
+    public Optional<RefreshToken> findByToken(String token) {
+        return refreshTokenRepository.findByToken(token);
+    }
+
+    @Override
     public RefreshToken createRefreshToken(User user) {
         Optional<RefreshToken> oRefreshToken = refreshTokenRepository.findByUserId(user.getId());
         RefreshToken refreshToken = oRefreshToken
@@ -29,6 +35,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .orElseGet(() -> createNewToken(user));
         refreshTokenRepository.save(refreshToken);
         return refreshToken;
+    }
+
+    @Override
+    public boolean isRefreshTokenValid(RefreshToken token) {
+        if (token.getExpirationDate().compareTo(new Date(System.currentTimeMillis())) < 0) {
+            refreshTokenRepository.delete(token);
+            return false;
+        }
+        return true;
     }
 
     @Override
