@@ -3,6 +3,7 @@ package dev.auth.lib.controller;
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
 import dev.auth.lib.controller.model.request.ActivateUserRequest;
+import dev.auth.lib.controller.model.request.ChangePasswordRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
 import dev.auth.lib.controller.model.request.RefreshTokenRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
@@ -25,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +44,7 @@ class AuthControllerTest {
     private static final String REFRESH_TOKEN = "refresh_token";
     private static final String NEW_REFRESH_TOKEN = "new_token";
     private static final String VERIFICATION_CODE = "abdc-1234";
+    public static final String OLD_PASSWORD = "oldPassword";
     private static final Date EXPIRATION_DATE = new Date();
 
     private AuthController authController;
@@ -176,6 +179,21 @@ class AuthControllerTest {
 
         // Then
         verify(authService, times(1)).activateUser(EMAIL, VERIFICATION_CODE, PASSWORD);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testChangePasswordSuccessful() {
+        // Given
+        Principal principal = mock(Principal.class);
+        when(principal.getName()).thenReturn(EMAIL);
+        ChangePasswordRequest request = new ChangePasswordRequest(PASSWORD, OLD_PASSWORD);
+
+        // When
+        ResponseEntity<Void> response = authController.changePassword(principal, request);
+
+        // Then
+        verify(authService, times(1)).changePassword(EMAIL, PASSWORD, OLD_PASSWORD);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

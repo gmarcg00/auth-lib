@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.util.Pair;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,7 @@ class UserServiceImplTest {
 
     private static final String EMAIL = "username@email.com";
     private static final String PASSWORD = "password";
+    public static final String OLD_PASSWORD = "oldPassword";
     private static final String ENCODED_PASSWORD = "encoded_password";
     private static final String DEFAULT_ROLE_NAME = "USER";
     private static final String VERIFICATION_PENDING_STATUS_NAME = "VERIFICATION_PENDING";
@@ -250,5 +252,51 @@ class UserServiceImplTest {
         assertNull(user.getVerificationCode());
         assertEquals(ENCODED_PASSWORD, user.getPassword());
         assertNotNull(user.getLastPasswordChange());
+    }
+
+    @Test
+    void testChangePasswordUserNotFound() {
+        // Given
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        // When y then
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> userService.changePassword(EMAIL, PASSWORD, OLD_PASSWORD));
+        assertEquals("User not found.", exception.getMessage());
+    }
+
+    @Test
+    void testChangePasswordBadOldPassword() {
+        // Given
+        User user = User.builder()
+                .email(EMAIL)
+                .password("$2a$12$y2LCCFGB/2l8FYX1ktrqHOsaYh6V7okXhMX4/ZG0B0RFwYgniRPJK")
+                .build();
+        when(passwordEncoder.matches(OLD_PASSWORD, user.getPassword())).thenReturn(false);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When y then
+        InvalidPasswordException exception = assertThrows(InvalidPasswordException.class, () -> userService.changePassword(EMAIL, PASSWORD, OLD_PASSWORD));
+        assertEquals("Invalid old password.", exception.getMessage());
+    }
+
+    @Test
+    void testChangePasswordSuccessful() throws Exception {
+        // Given
+        AutoCloseable closeable = Mockito.mockStatic(Instant.class);
+        User user = User.builder()
+                .email(EMAIL)
+                .password("$2a$12$y2LCCFGB/2l8FYX1ktrqHOsaYh6V7okXhMX4/ZG0B0RFwYgniRPJK")
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(OLD_PASSWORD, user.getPassword())).thenReturn(true);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(ENCODED_PASSWORD);
+        when(Instant.now()).thenReturn(Instant.MAX);
+
+        // When
+        userService.changePassword(EMAIL, PASSWORD, OLD_PASSWORD);
+
+        // Then
+        verify(userRepository, times(1)).save(any(User.class));
+        closeable.close();
     }
 }

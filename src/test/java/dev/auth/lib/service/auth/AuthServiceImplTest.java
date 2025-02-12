@@ -1,10 +1,7 @@
 package dev.auth.lib.service.auth;
 
 import dev.auth.lib.data.model.*;
-import dev.auth.lib.exception.InvalidCredentialsException;
-import dev.auth.lib.exception.RefreshTokenExpiredException;
-import dev.auth.lib.exception.RefreshTokenNotFoundException;
-import dev.auth.lib.exception.UserNotFoundException;
+import dev.auth.lib.exception.*;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
 import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
@@ -34,6 +31,7 @@ class AuthServiceImplTest {
     private static final String USER_ROLE = "TEST_ROLE";
     private static final String USER_TEST = "User test";
     private static final String USER_PASSWORD = "User password";
+    private static final String OLD_PASSWORD = "oldPassword";
     private static final String USER_MAIL = "test@mail.com";
     private static final String VERIFICATION_CODE = "abcdefgh";
     private static final String REQUEST_URI = "http://www.test.com";
@@ -202,5 +200,24 @@ class AuthServiceImplTest {
 
         // Then
         verify(userService, times(1)).activateUser(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+    }
+
+    @Test
+    void testChangePasswordInvalidOldPassword() {
+        // Given
+        doThrow(InvalidPasswordException.class).when(userService).changePassword(USER_MAIL, USER_PASSWORD, OLD_PASSWORD);
+
+        // When y Then
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> authService.changePassword(USER_MAIL, USER_PASSWORD, OLD_PASSWORD));
+        assertEquals("Credentials provided by the user are not valid.", exception.getMessage());
+    }
+
+    @Test
+    void testChangePasswordSuccessful() {
+        // When
+        authService.changePassword(USER_MAIL, USER_PASSWORD, OLD_PASSWORD);
+
+        // Then
+        verify(userService, times(1)).changePassword(USER_MAIL, USER_PASSWORD, OLD_PASSWORD);
     }
 }

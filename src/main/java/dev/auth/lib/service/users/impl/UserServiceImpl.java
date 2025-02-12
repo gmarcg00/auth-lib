@@ -74,6 +74,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public void changePassword(String email, String newPassword, String oldPassword) {
+        User user = getUser(email);
+        checkOldPassword(user, oldPassword);
+        addEncodedPassword(user, newPassword);
+        userRepository.save(user);
+    }
+
+    private void checkOldPassword(User user, String oldPassword) {
+        String databaseOldPassword = user.getPassword();
+        if (!passwordEncoder.matches(oldPassword, databaseOldPassword)) {
+            log.warn("El usuario {} no ha suministrado correctamente su antigua contraseña.", user.getId());
+            throw new InvalidPasswordException("Invalid old password.");
+        }
+    }
+
     private User getUser(String email) {
         Optional<User> oUser = userRepository.findByEmail(email);
         return oUser.orElseThrow(() -> {

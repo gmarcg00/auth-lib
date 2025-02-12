@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: Nombre de la API
+  description: Descripción breve de la API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Servidor local
+
+paths:
+  /ejemplo:
+    get:
+      summary: Obtener datos de ejemplo
+      description: Devuelve una lista de ejemplos
+      responses:
+        '200':
+          description: Lista de ejemplos obtenida con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    nombre:
+                      type: string
+                      example: Ejemplo 1
+    post:
+      summary: Crear un nuevo ejemplo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  example: Nuevo Ejemplo
+      responses:
+        '201':
+          description: Ejemplo creado con éxito
+
+components:
+  schemas:
+    Ejemplo:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string

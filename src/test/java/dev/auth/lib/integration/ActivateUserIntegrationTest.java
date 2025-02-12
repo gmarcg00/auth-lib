@@ -1,4 +1,4 @@
-package dev.auth.lib.service.auth;
+package dev.auth.lib.integration;
 
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.repository.UserRepository;
