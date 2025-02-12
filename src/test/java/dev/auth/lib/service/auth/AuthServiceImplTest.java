@@ -2,6 +2,7 @@ package dev.auth.lib.service.auth;
 
 import dev.auth.lib.data.model.*;
 import dev.auth.lib.exception.InvalidCredentialsException;
+import dev.auth.lib.exception.UserNotFoundException;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
 import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
@@ -135,5 +136,20 @@ class AuthServiceImplTest {
         RefreshToken refreshToken = new RefreshToken();
         when(refreshTokenService.createRefreshToken(user)).thenReturn(refreshToken);
         return new AuthServiceImpl.Tokens(accessToken, refreshToken);
+    }
+
+    @Test
+    void testLogoutUserNotFound() {
+        // When y Then
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> authService.logout(null));
+        assertEquals("User not found.", exception.getMessage());
+    }
+
+    @Test
+    void testLogoutSuccessful() {
+        // When
+        authService.logout(inputUser);
+        // Then
+        verify(refreshTokenService).deleteByUser(inputUser);
     }
 }

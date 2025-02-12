@@ -7,6 +7,7 @@ import dev.auth.lib.data.model.RefreshToken;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.model.UserStatusEnum;
 import dev.auth.lib.exception.InvalidCredentialsException;
+import dev.auth.lib.exception.UserNotFoundException;
 import dev.auth.lib.service.authentication.AuthService;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
@@ -20,6 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static java.util.Objects.isNull;
+
 
 @Service
 @Slf4j
@@ -27,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
 
     private static final String INVALID_CREDENTIALS_ERROR = "Credentials provided by the user are not valid.";
+    private static final String USER_NOT_FOUND_ERROR = "User not found.";
 
     private final UserService userService;
     private final JwtService jwtService;
@@ -53,6 +57,13 @@ public class AuthServiceImpl implements AuthService {
         }
         User user = (User) authentication.getPrincipal();
         return generateTokens(user);
+    }
+
+    @Transactional
+    @Override
+    public void logout(User user) {
+        if(isNull(user)) throw new UserNotFoundException(USER_NOT_FOUND_ERROR);
+        refreshTokenService.deleteByUser(user);
     }
 
     private AuthServiceImpl.Tokens generateTokens(User user) {
