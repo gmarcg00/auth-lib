@@ -2,6 +2,7 @@ package dev.auth.lib.controller;
 
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
+import dev.auth.lib.controller.model.request.ActivateUserRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
 import dev.auth.lib.controller.model.request.RefreshTokenRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
@@ -40,6 +41,7 @@ class AuthControllerTest {
     private static final String ACCESS_TOKEN = "access_token";
     private static final String REFRESH_TOKEN = "refresh_token";
     private static final String NEW_REFRESH_TOKEN = "new_token";
+    private static final String VERIFICATION_CODE = "abdc-1234";
     private static final Date EXPIRATION_DATE = new Date();
 
     private AuthController authController;
@@ -149,5 +151,31 @@ class AuthControllerTest {
         assertEquals(NEW_REFRESH_TOKEN, response.getRefreshToken());
         assertEquals(EXPIRATION_DATE, response.getExpirationDate());
         assertEquals("Bearer", response.getTokenType());
+    }
+
+    @Test
+    void testActivateUserWithoutPasswordSuccessful() {
+        // Given
+        ActivateUserRequest request = new ActivateUserRequest(EMAIL, VERIFICATION_CODE, "");
+
+        // When
+        ResponseEntity<Void> response = authController.activate(request);
+
+        // Then
+        verify(authService, times(1)).activateUser(EMAIL, VERIFICATION_CODE, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testActivateUserWithPasswordSuccessful() {
+        // Given
+        ActivateUserRequest request = new ActivateUserRequest(EMAIL, VERIFICATION_CODE, PASSWORD);
+
+        // When
+        ResponseEntity<Void> response = authController.activate(request);
+
+        // Then
+        verify(authService, times(1)).activateUser(EMAIL, VERIFICATION_CODE, PASSWORD);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

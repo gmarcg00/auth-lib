@@ -6,7 +6,7 @@ import dev.auth.lib.data.model.UserStatus;
 import dev.auth.lib.data.repository.RoleRepository;
 import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.data.repository.UserStatusRepository;
-import dev.auth.lib.exception.UserWithSameUsernameException;
+import dev.auth.lib.exception.*;
 import dev.auth.lib.service.users.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +35,8 @@ class UserServiceImplTest {
     private static final String ENCODED_PASSWORD = "encoded_password";
     private static final String DEFAULT_ROLE_NAME = "USER";
     private static final String VERIFICATION_PENDING_STATUS_NAME = "VERIFICATION_PENDING";
+    private static final String VERIFICATION_CODE = "abcde-1234";
+    private static final String ACTIVE_STATUS_NAME = "ACTIVE";
 
     private UserServiceImpl userService;
 
@@ -115,5 +117,138 @@ class UserServiceImplTest {
         when(userStatusRepository.findByName(VERIFICATION_PENDING_STATUS_NAME)).thenReturn(userStatus);
 
         return Pair.of(user, closeable);
+    }
+
+    @Test
+    void testActivateUserUserNotFound() {
+        // Given
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        // When y then
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> userService.activateUser(EMAIL, VERIFICATION_CODE, null));
+        assertEquals("User not found.", exception.getMessage());
+    }
+
+    @Test
+    void testActivateUserUserAlreadyValidated() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(ACTIVE_STATUS_NAME)
+                .build();
+        User user = User.builder()
+                .status(status)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When y then
+        UserAlreadyValidatedException exception = assertThrows(UserAlreadyValidatedException.class, () -> userService.activateUser(EMAIL, VERIFICATION_CODE, null));
+        assertEquals("User already validated.", exception.getMessage());
+    }
+
+    @Test
+    void testActiveUserInvalidVerificationCode() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(VERIFICATION_PENDING_STATUS_NAME)
+                .build();
+        User user = User.builder()
+                .status(status)
+                .verificationCode(VERIFICATION_CODE)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When y then
+        InvalidVerificationCodeException exception = assertThrows(InvalidVerificationCodeException.class, () -> userService.activateUser(EMAIL, "VERIFICATION_CODE", null));
+        assertEquals("Invalid verification code.", exception.getMessage());
+    }
+
+    @Test
+    void testActiveUserNotPasswordInUserAndInput() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(VERIFICATION_PENDING_STATUS_NAME)
+                .build();
+        User user = User.builder()
+                .status(status)
+                .verificationCode(VERIFICATION_CODE)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When y then
+        MandatoryPasswordException exception = assertThrows(MandatoryPasswordException.class, () -> userService.activateUser(EMAIL, VERIFICATION_CODE, null));
+        assertEquals("Password is mandatory.", exception.getMessage());
+    }
+
+    @Test
+    void testActiveUserPasswordInUserAndInput() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(VERIFICATION_PENDING_STATUS_NAME)
+                .build();
+        User user = User.builder()
+                .status(status)
+                .password(PASSWORD)
+                .verificationCode(VERIFICATION_CODE)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When y then
+        PasswordAlreadyAddedException exception = assertThrows(PasswordAlreadyAddedException.class, () -> userService.activateUser(EMAIL, VERIFICATION_CODE, PASSWORD));
+        assertEquals("User has already added a password.", exception.getMessage());
+    }
+
+    @Test
+    void testActivateUserWithoutPasswordSuccessful() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(VERIFICATION_PENDING_STATUS_NAME)
+                .build();
+        User user = User.builder()
+                .status(status)
+                .verificationCode(VERIFICATION_CODE)
+                .password(PASSWORD)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        UserStatus newStatus = UserStatus.builder()
+                .name(ACTIVE_STATUS_NAME)
+                .build();
+        when(userStatusRepository.findByName(ACTIVE_STATUS_NAME)).thenReturn(newStatus);
+
+
+        // When
+        userService.activateUser(EMAIL, VERIFICATION_CODE, null);
+
+        // Then
+        verify(userRepository, times(1)).save(user);
+        assertEquals(newStatus, user.getStatus());
+        assertNull(user.getVerificationCode());
+    }
+
+    @Test
+    void testActivateUserWithPasswordSuccessful() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(VERIFICATION_PENDING_STATUS_NAME)
+                .build();
+        User user = User.builder()
+                .status(status)
+                .verificationCode(VERIFICATION_CODE)
+                .build();
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(ENCODED_PASSWORD);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        UserStatus newStatus = UserStatus.builder()
+                .name(ACTIVE_STATUS_NAME)
+                .build();
+        when(userStatusRepository.findByName(ACTIVE_STATUS_NAME)).thenReturn(newStatus);
+
+        // When
+        userService.activateUser(EMAIL, VERIFICATION_CODE, PASSWORD);
+
+        // Then
+        verify(userRepository, times(1)).save(user);
+        assertEquals(newStatus, user.getStatus());
+        assertNull(user.getVerificationCode());
+        assertEquals(ENCODED_PASSWORD, user.getPassword());
+        assertNotNull(user.getLastPasswordChange());
     }
 }

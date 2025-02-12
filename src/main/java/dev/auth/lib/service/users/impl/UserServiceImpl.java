@@ -7,8 +7,7 @@ import dev.auth.lib.data.model.UserStatusEnum;
 import dev.auth.lib.data.repository.RoleRepository;
 import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.data.repository.UserStatusRepository;
-import dev.auth.lib.exception.RoleNotFoundException;
-import dev.auth.lib.exception.UserWithSameUsernameException;
+import dev.auth.lib.exception.*;
 import dev.auth.lib.service.users.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +58,61 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> findByEmail(String username) {
         return userRepository.findByEmail(username);
+    }
+
+    @Override
+    public void activateUser(String email, String verificationCode, String password) {
+        User user = getUser(email);
+        checkStatusIsVerificationPending(user);
+        checkVerificationCodeIsValid(user, verificationCode);
+        checkUserWithoutPasswordCanBeAdded(user, password);
+        checkUserWithPasswordAlreadyAdded(user, password);
+
+        addStatus(user, UserStatusEnum.ACTIVE);
+        user.setVerificationCode(null);
+        addEncodedPassword(user, password);
+        userRepository.save(user);
+    }
+
+    private User getUser(String email) {
+        Optional<User> oUser = userRepository.findByEmail(email);
+        return oUser.orElseThrow(() -> {
+            log.info("El usuario no existe en el sistema.");
+            return new UserNotFoundException("User not found.");
+        });
+    }
+
+    private void checkStatusIsVerificationPending(User user) {
+        if (!UserStatusEnum.VERIFICATION_PENDING.getStatusCode().equals(user.getStatus().getName())) {
+            log.warn("El usuario {} no está pendiente de verificación.", user.getId());
+            throw new UserAlreadyValidatedException("User already validated.");
+        }
+    }
+
+    private void checkVerificationCodeIsValid(User user, String verificationCode) {
+        String databaseVerificationCode = user.getVerificationCode();
+        if(isNull(databaseVerificationCode)) {
+            log.warn("El usuario {} no tiene un código de verificación.", user.getId());
+            throw new InvalidVerificationCodeException("Verification code not found.");
+        }
+        if (!Objects.equals(databaseVerificationCode, verificationCode)) {
+            log.warn("El usuario {} no ha suministrado correctamente el código de verificación.", user.getId());
+            throw new InvalidVerificationCodeException("Invalid verification code.");
+        }
+    }
+
+    private void checkUserWithoutPasswordCanBeAdded(User user, String password) {
+        if (isNull(user.getPassword()) && isNull(password)) {
+            log.warn("El usuario {} ha intentado activar una cuenta sin contraseña.", user.getId());
+            throw new MandatoryPasswordException("Password is mandatory.");
+        }
+    }
+
+    private void checkUserWithPasswordAlreadyAdded(User user, String password) {
+        if (nonNull(user.getPassword()) && nonNull(password)) {
+            log.warn("El usuario {} ha intentado activar una cuenta con contraseña.", user.getId());
+            throw new PasswordAlreadyAddedException("User has already added a password.");
+        }
     }
 
     private void addVerificationCode(User user) {

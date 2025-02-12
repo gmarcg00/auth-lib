@@ -6,10 +6,7 @@ import dev.auth.lib.data.model.AccessToken;
 import dev.auth.lib.data.model.RefreshToken;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.model.UserStatusEnum;
-import dev.auth.lib.exception.InvalidCredentialsException;
-import dev.auth.lib.exception.RefreshTokenExpiredException;
-import dev.auth.lib.exception.RefreshTokenNotFoundException;
-import dev.auth.lib.exception.UserNotFoundException;
+import dev.auth.lib.exception.*;
 import dev.auth.lib.service.authentication.AuthService;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
@@ -85,6 +82,16 @@ public class AuthServiceImpl implements AuthService {
         }
         User user = refreshToken.getUser();
         return this.generateTokens(user);
+    }
+
+    @Transactional
+    @Override
+    public void activateUser(String email, String verificationCode, String password) {
+        try {
+            userService.activateUser(email, verificationCode, password);
+        } catch (UserNotFoundException | InvalidVerificationCodeException e) {
+            throw new InvalidCredentialsException(INVALID_CREDENTIALS_ERROR);
+        }
     }
 
     private AuthServiceImpl.Tokens generateTokens(User user) {
