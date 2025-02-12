@@ -1,0 +1,4 @@
+{
+  "code": "INVALID_CREDENTIALS",
+  "message": "Credentials provided by the user are not valid."
+}

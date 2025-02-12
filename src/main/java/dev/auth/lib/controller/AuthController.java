@@ -2,6 +2,7 @@ package dev.auth.lib.controller;
 
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
+import dev.auth.lib.controller.model.request.ActivateUserRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
 import dev.auth.lib.controller.model.request.RefreshTokenRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
@@ -17,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import static java.util.Objects.isNull;
 
 @RestController
 @RequestMapping("/auth")
@@ -60,6 +63,7 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+
     /**
      * Method to refresh the token
      * @param request user access data
@@ -70,5 +74,19 @@ public class AuthController {
         AuthServiceImpl.Tokens tokens = authService.refreshToken(request.getRefreshToken());
         RefreshTokenResponse response = UsersMapper.toRefreshTokenResponse(tokens);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+    /**
+     * Method to activate a user
+     * @param request user access data
+     */
+    @PostMapping(value = "/activate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> activate(@RequestBody @Validated final ActivateUserRequest request){
+
+        String inputPassword = request.getPassword();
+        String password = isNull(inputPassword) || inputPassword.trim().isEmpty() ? null : inputPassword;
+        authService.activateUser(request.getEmail(), request.getVerificationCode(), password);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

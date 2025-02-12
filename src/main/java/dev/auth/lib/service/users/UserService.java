@@ -11,4 +11,5 @@ public interface UserService {
 
     User createUser(User user);
     Optional<User> findByEmail(String username);
+    void activateUser(String email, String verificationCode, String password);
 }

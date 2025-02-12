@@ -2,6 +2,8 @@ package dev.auth.lib.service.auth;
 
 import dev.auth.lib.data.model.*;
 import dev.auth.lib.exception.InvalidCredentialsException;
+import dev.auth.lib.exception.RefreshTokenExpiredException;
+import dev.auth.lib.exception.RefreshTokenNotFoundException;
 import dev.auth.lib.exception.UserNotFoundException;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
@@ -17,6 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +37,7 @@ class AuthServiceImplTest {
     private static final String USER_MAIL = "test@mail.com";
     private static final String VERIFICATION_CODE = "abcdefgh";
     private static final String REQUEST_URI = "http://www.test.com";
+    private static final String REFRESH_TOKEN = "abcdefg";
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -151,5 +155,52 @@ class AuthServiceImplTest {
         authService.logout(inputUser);
         // Then
         verify(refreshTokenService).deleteByUser(inputUser);
+    }
+
+    @Test
+    void testRefreshTokenNotFound() {
+        // Given
+        when(refreshTokenService.findByToken(REFRESH_TOKEN)).thenReturn(Optional.empty());
+
+        // When y Then
+        RefreshTokenNotFoundException exception = assertThrows(RefreshTokenNotFoundException.class, () -> authService.refreshToken(REFRESH_TOKEN));
+        assertEquals("Refresh token not found.", exception.getMessage());
+    }
+
+    @Test
+    void testRefreshTokenInvalid() {
+        // Given
+        RefreshToken databaseRefreshToken = new RefreshToken();
+        when(refreshTokenService.findByToken(REFRESH_TOKEN)).thenReturn(Optional.of(databaseRefreshToken));
+        when(refreshTokenService.isRefreshTokenValid(databaseRefreshToken)).thenReturn(false);
+
+        // When y Then
+        RefreshTokenExpiredException exception = assertThrows(RefreshTokenExpiredException.class, () -> authService.refreshToken(REFRESH_TOKEN));
+        assertEquals("Refresh token has expired.", exception.getMessage());
+    }
+
+    @Test
+    void testRefreshTokenSuccessful() {
+        // Given
+        RefreshToken databaseRefreshToken = new RefreshToken();
+        databaseRefreshToken.setUser(inputUser);
+        when(refreshTokenService.findByToken(REFRESH_TOKEN)).thenReturn(Optional.of(databaseRefreshToken));
+        when(refreshTokenService.isRefreshTokenValid(databaseRefreshToken)).thenReturn(true);
+        AuthServiceImpl.Tokens mockTokens = mockTokenGeneration(inputUser);
+
+        // When
+        AuthServiceImpl.Tokens tokens = authService.refreshToken(REFRESH_TOKEN);
+
+        // Then
+        assertEquals(tokens, mockTokens);
+    }
+
+    @Test
+    void testActivateUserSuccessful() {
+        // When
+        authService.activateUser(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+
+        // Then
+        verify(userService, times(1)).activateUser(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
     }
 }

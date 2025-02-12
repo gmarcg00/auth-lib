@@ -9,4 +9,5 @@ public interface AuthService {
     AuthServiceImpl.Tokens login(String username, String password,String requestUri);
     void logout(User user);
     AuthServiceImpl.Tokens refreshToken(String token);
+    void activateUser(String email, String verificationCode, String password);
 }
