@@ -3,7 +3,9 @@ package dev.auth.lib.controller;
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
+import dev.auth.lib.controller.model.request.RefreshTokenRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
+import dev.auth.lib.controller.model.response.RefreshTokenResponse;
 import dev.auth.lib.data.model.AccessToken;
 import dev.auth.lib.data.model.RefreshToken;
 import dev.auth.lib.data.model.User;
@@ -37,6 +39,7 @@ class AuthControllerTest {
     private static final String URI = "/test/uri";
     private static final String ACCESS_TOKEN = "access_token";
     private static final String REFRESH_TOKEN = "refresh_token";
+    private static final String NEW_REFRESH_TOKEN = "new_token";
     private static final Date EXPIRATION_DATE = new Date();
 
     private AuthController authController;
@@ -118,5 +121,33 @@ class AuthControllerTest {
             assertNotNull(responseEntity);
             verify(authService, times(1)).logout(user);
         }
+    }
+
+    @Test
+    void testRefreshToken() {
+        // Given
+        RefreshTokenRequest request = new RefreshTokenRequest(REFRESH_TOKEN);
+        User user = mock(User.class);
+        AccessToken accessToken = new AccessToken(ACCESS_TOKEN, EXPIRATION_DATE, 120L, user);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(NEW_REFRESH_TOKEN)
+                .build();
+        when(authService.refreshToken(REFRESH_TOKEN)).thenReturn(new AuthServiceImpl.Tokens(accessToken, refreshToken));
+        when(UsersMapper.toRefreshTokenResponse(any())).thenReturn(RefreshTokenResponse.builder()
+                .token(ACCESS_TOKEN)
+                .refreshToken(NEW_REFRESH_TOKEN)
+                .expirationDate(EXPIRATION_DATE)
+                .build());
+
+        // When
+        ResponseEntity<RefreshTokenResponse> responseEntity = authController.refreshToken(request);
+
+        // Then
+        RefreshTokenResponse response = responseEntity.getBody();
+        assertNotNull(response);
+        assertEquals(ACCESS_TOKEN, response.getToken());
+        assertEquals(NEW_REFRESH_TOKEN, response.getRefreshToken());
+        assertEquals(EXPIRATION_DATE, response.getExpirationDate());
+        assertEquals("Bearer", response.getTokenType());
     }
 }

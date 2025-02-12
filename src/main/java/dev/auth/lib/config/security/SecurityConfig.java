@@ -47,6 +47,7 @@ public class SecurityConfig {
                     authReqConfig.requestMatchers(HttpMethod.GET, "/actuator/health").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/users").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/sessions").permitAll();
+                    authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/refresh-token").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.OPTIONS,"/**").permitAll();
                     authReqConfig.anyRequest().authenticated();
                 })

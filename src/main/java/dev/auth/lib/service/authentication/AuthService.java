@@ -8,4 +8,5 @@ public interface AuthService {
     void signUp(User user);
     AuthServiceImpl.Tokens login(String username, String password,String requestUri);
     void logout(User user);
+    AuthServiceImpl.Tokens refreshToken(String token);
 }

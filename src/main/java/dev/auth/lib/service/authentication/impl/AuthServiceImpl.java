@@ -7,6 +7,8 @@ import dev.auth.lib.data.model.RefreshToken;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.model.UserStatusEnum;
 import dev.auth.lib.exception.InvalidCredentialsException;
+import dev.auth.lib.exception.RefreshTokenExpiredException;
+import dev.auth.lib.exception.RefreshTokenNotFoundException;
 import dev.auth.lib.exception.UserNotFoundException;
 import dev.auth.lib.service.authentication.AuthService;
 import dev.auth.lib.service.authentication.JwtService;
@@ -20,6 +22,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
@@ -64,6 +68,23 @@ public class AuthServiceImpl implements AuthService {
     public void logout(User user) {
         if(isNull(user)) throw new UserNotFoundException(USER_NOT_FOUND_ERROR);
         refreshTokenService.deleteByUser(user);
+    }
+
+    @Transactional
+    @Override
+    public Tokens refreshToken(String token) {
+        Optional<RefreshToken> optionalRefreshToken = refreshTokenService.findByToken(token);
+        RefreshToken refreshToken = optionalRefreshToken
+                .orElseThrow(() -> {
+                    log.warn("El token de refresco ya no existe.");
+                    return new RefreshTokenNotFoundException("Refresh token not found.");
+                });
+        if(!refreshTokenService.isRefreshTokenValid(refreshToken)) {
+            log.info("El token de refresco ha expirado.");
+            throw new RefreshTokenExpiredException("Refresh token has expired.");
+        }
+        User user = refreshToken.getUser();
+        return this.generateTokens(user);
     }
 
     private AuthServiceImpl.Tokens generateTokens(User user) {

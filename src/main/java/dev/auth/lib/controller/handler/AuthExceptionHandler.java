@@ -3,6 +3,8 @@ package dev.auth.lib.controller.handler;
 import dev.auth.lib.controller.model.response.BadRequestResponse;
 import dev.auth.lib.controller.model.response.ExceptionResponse;
 import dev.auth.lib.exception.InvalidCredentialsException;
+import dev.auth.lib.exception.RefreshTokenExpiredException;
+import dev.auth.lib.exception.RefreshTokenNotFoundException;
 import dev.auth.lib.exception.UserWithSameUsernameException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
@@ -22,10 +24,24 @@ import java.util.List;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class AuthExceptionHandler {
 
+    private static final String REFRESH_TOKEN_EXPIRED = "REFRESH_TOKEN_EXPIRED";
+    private static final String REFRESH_TOKEN_NOT_FOUND = "REFRESH_TOKEN_NOT_FOUND";
     private static final String INVALID_CREDENTIALS = "INVALID_CREDENTIALS";
     private static final String USERNAME_ALREADY_EXISTS = "USERNAME_ALREADY_EXISTS";
     private static final String INPUT_VALIDATION_ERROR_MESSAGE = "INPUT_VALIDATION_ERROR";
     private static final String FORBIDDEN = "FORBIDDEN";
+
+    @ExceptionHandler(RefreshTokenExpiredException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ExceptionResponse handleRefreshTokenExpiredException(RefreshTokenExpiredException ex) {
+        return new ExceptionResponse(REFRESH_TOKEN_EXPIRED, ex.getMessage());
+    }
+
+    @ExceptionHandler(RefreshTokenNotFoundException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ExceptionResponse handleRefreshTokenNotFoundException(RefreshTokenNotFoundException ex) {
+        return new ExceptionResponse(REFRESH_TOKEN_NOT_FOUND, ex.getMessage());
+    }
 
     @ExceptionHandler(UserWithSameUsernameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
