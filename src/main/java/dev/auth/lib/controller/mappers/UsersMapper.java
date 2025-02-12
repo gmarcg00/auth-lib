@@ -34,7 +34,7 @@ public class UsersMapper {
         RefreshToken refreshToken = tokens.getRefreshToken();
         return RefreshTokenResponse.builder()
                 .token(accessToken.getToken())
-                .expirationDate(String.valueOf(accessToken.getExpirationDate()))
+                .expirationDate(accessToken.getExpirationDate())
                 .refreshToken(refreshToken.getToken())
                 .build();
     }

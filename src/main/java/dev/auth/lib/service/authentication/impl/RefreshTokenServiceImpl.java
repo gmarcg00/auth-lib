@@ -47,6 +47,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
+    public boolean existsRefreshToken(User user) {
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUserId(user.getId());
+        return refreshToken.isPresent();
+    }
+
+    @Override
     public void deleteByUser(User user) {
         refreshTokenRepository.deleteByUser(user);
     }

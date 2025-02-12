@@ -9,5 +9,6 @@ public interface RefreshTokenService {
     Optional<RefreshToken> findByToken(String token);
     RefreshToken createRefreshToken(User user);
     boolean isRefreshTokenValid(RefreshToken token);
+    boolean existsRefreshToken(User user);
     void deleteByUser(User user);
 }

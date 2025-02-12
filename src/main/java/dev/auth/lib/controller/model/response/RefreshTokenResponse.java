@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+import java.util.Date;
+
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +17,7 @@ public class RefreshTokenResponse {
 
     @JsonProperty(value = "expiration_date")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private String expirationDate;
+    private Date expirationDate;
 
     @JsonProperty("token_type")
     private final String tokenType = "Bearer";
