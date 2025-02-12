@@ -3,6 +3,7 @@ package dev.auth.lib.controller;
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
 import dev.auth.lib.controller.model.request.ActivateUserRequest;
+import dev.auth.lib.controller.model.request.ChangePasswordRequest;
 import dev.auth.lib.controller.model.request.LoginRequest;
 import dev.auth.lib.controller.model.request.RefreshTokenRequest;
 import dev.auth.lib.controller.model.response.LoginResponse;
@@ -18,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 import static java.util.Objects.isNull;
 
@@ -87,6 +90,20 @@ public class AuthController {
         String inputPassword = request.getPassword();
         String password = isNull(inputPassword) || inputPassword.trim().isEmpty() ? null : inputPassword;
         authService.activateUser(request.getEmail(), request.getVerificationCode(), password);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+    /**
+     * Method to change the password
+     * @param principal user access data
+     * @param request user access data
+     */
+    @PostMapping(value = "/change-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> changePassword(Principal principal, @RequestBody @Validated ChangePasswordRequest request){
+
+        String email = principal.getName();
+        authService.changePassword(email, request.getPassword(), request.getOldPassword());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

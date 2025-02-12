@@ -94,6 +94,16 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Transactional
+    @Override
+    public void changePassword(String email, String userPassword, String oldPassword) {
+        try {
+            userService.changePassword(email, userPassword, oldPassword);
+        } catch (InvalidPasswordException e) {
+            throw new InvalidCredentialsException(INVALID_CREDENTIALS_ERROR);
+        }
+    }
+
     private AuthServiceImpl.Tokens generateTokens(User user) {
         checkIfUserIsActive(user);
         AccessToken accessToken = jwtService.generateAccessToken(user);
