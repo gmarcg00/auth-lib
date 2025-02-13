@@ -8,6 +8,13 @@ spring:
     spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
     show-sql: false
+  mail:
+    host: localhost
+    port: 3025
+    username: spring
+    password: boot
+    from: admin@app.io
+
 security:
   jwt:
     secret: cWkgY2xhdmUgZXMgbXV5IHNlZ4VyYSAyMjM0NTY3OCBhYmNkZWZn
@@ -15,3 +22,11 @@ security:
     expiration-refresh-token: 360
   cors:
     allowed-origin: '*'
+
+info:
+  app:
+    title: App-title
+
+server:
+  host:
+    front: http://localhost:8080

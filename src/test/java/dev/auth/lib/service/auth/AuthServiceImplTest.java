@@ -5,12 +5,18 @@ import dev.auth.lib.exception.*;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
 import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
+import dev.auth.lib.service.email.EmailService;
+import dev.auth.lib.service.email.types.EmailFormatterFactory;
+import dev.auth.lib.service.email.types.UserRecoveryPasswordEmailFormatter;
+import dev.auth.lib.service.email.types.UserRegistrationEmailFormatter;
 import dev.auth.lib.service.users.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -52,10 +58,16 @@ class AuthServiceImplTest {
     @Mock
     private AuthenticationManager authenticationManager;
 
+    @Mock
+    private EmailService emailService;
+
+    private AutoCloseable closeable;
+
     private User inputUser;
 
     @BeforeEach
     public void setUp() {
+        closeable = MockitoAnnotations.openMocks(this);
         UserStatus userStatus = UserStatus.builder()
                 .name(USER_STATUS_ACTIVE)
                 .build();
@@ -66,9 +78,15 @@ class AuthServiceImplTest {
                 .build();
     }
 
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeable.close();
+    }
+
     @Test
-    void testSignUpSuccessful() {
+    void testSignUpSuccessful() throws Exception {
         // Given
+        AutoCloseable ac = mockStatic(EmailFormatterFactory.class);
         Role role = new Role();
         role.setName(USER_ROLE);
         User databaseUser = User.builder()
@@ -78,11 +96,16 @@ class AuthServiceImplTest {
                 .verificationCode(VERIFICATION_CODE)
                 .build();
         when(userService.createUser(inputUser)).thenReturn(databaseUser);
+        UserRegistrationEmailFormatter emailFormatter = mock(UserRegistrationEmailFormatter.class);
+        when(EmailFormatterFactory.createUserRegistrationEmailFormatter(databaseUser, null)).thenReturn(emailFormatter);
+
         // When
         authService.signUp(inputUser);
 
         // Then
-        verify(userService, times(1)).createUser(inputUser);
+        verify(emailService, times(1)).sendEmail(USER_MAIL, emailFormatter);
+
+        ac.close();
     }
 
     @Test
@@ -222,19 +245,25 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void testRecoveryPasswordSuccessful() {
+    void testRecoveryPasswordSuccessful() throws Exception {
         // Given
+        AutoCloseable ac = mockStatic(EmailFormatterFactory.class);
         User serviceUser = User.builder()
                 .email(USER_MAIL)
                 .verificationCode(VERIFICATION_CODE)
                 .build();
         when(userService.enableResetPassword(USER_MAIL)).thenReturn(serviceUser);
+        UserRecoveryPasswordEmailFormatter emailFormatter = mock(UserRecoveryPasswordEmailFormatter.class);
+        when(EmailFormatterFactory.createUserRecoveryPasswordEmailFormatter(serviceUser, null)).thenReturn(emailFormatter);
 
         // When
         authService.recoveryPassword(USER_MAIL);
 
         // Then
         verify(userService, times(1)).enableResetPassword(USER_MAIL);
+        verify(emailService, times(1)).sendEmail(USER_MAIL, emailFormatter);
+
+        ac.close();
     }
 
     @Test

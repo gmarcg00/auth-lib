@@ -1,5 +1,9 @@
 package dev.auth.lib.integration;
 
+
+import com.icegreen.greenmail.configuration.GreenMailConfiguration;
+import com.icegreen.greenmail.junit5.GreenMailExtension;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import dev.auth.lib.controller.model.request.RecoveryPasswordActivateRequest;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.model.UserStatusEnum;
@@ -7,6 +11,7 @@ import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.integration.utils.RequestValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -37,6 +42,11 @@ class ActivateRecoveryPasswordIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @RegisterExtension
+    private static final GreenMailExtension GREEN_MAIL = new GreenMailExtension(ServerSetupTest.SMTP)
+            .withConfiguration(GreenMailConfiguration.aConfig().withUser("spring", "boot"))
+            .withPerMethodLifecycle(false);
 
     @BeforeEach
     public void setup() {

@@ -29,6 +29,7 @@ public class AuthExceptionHandler {
     private static final String USER_NOT_FOUND = "USER_NOT_FOUND";
     private static final String FORBIDDEN = "FORBIDDEN";
     private static final String BAD_REQUEST = "BAD_REQUEST";
+    private static final String INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
 
     @ExceptionHandler(ForbiddenResetPasswordException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -40,6 +41,12 @@ public class AuthExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleUserNotActiveErrors(UserNotActiveException ex) {
         return new ExceptionResponse(BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(SendEmailException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ExceptionResponse handleSendEmailErrors(SendEmailException ex) {
+        return new ExceptionResponse(INTERNAL_SERVER_ERROR, "Internal server error.");
     }
 
     @ExceptionHandler(MandatoryPasswordException.class)

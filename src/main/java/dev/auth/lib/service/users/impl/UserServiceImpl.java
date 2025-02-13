@@ -9,6 +9,7 @@ import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.data.repository.UserStatusRepository;
 import dev.auth.lib.exception.*;
 import dev.auth.lib.service.users.UserService;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,9 +21,10 @@ import java.util.*;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-@Service
-@RequiredArgsConstructor
+
+@AllArgsConstructor
 @Slf4j
+@Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;

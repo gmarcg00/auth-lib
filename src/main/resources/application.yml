@@ -17,7 +17,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    from: ${MAIL_FROM}
 
 security:
   cors:
@@ -27,3 +32,11 @@ security:
     secret: ${JWT_SECRET}
     expiration-access-token: ${EXPIRATION_ACCESS_TOKEN}
     expiration-refresh-token: ${EXPIRATION_REFRESH_TOKEN}
+
+info:
+  app:
+    title: ${INFO_APP_TITLE}
+
+server:
+  host:
+    front: ${SERVER_HOST_FRONT}

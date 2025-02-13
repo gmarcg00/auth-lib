@@ -10,11 +10,12 @@ import dev.auth.lib.exception.*;
 import dev.auth.lib.service.authentication.AuthService;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
+import dev.auth.lib.service.email.EmailService;
 import dev.auth.lib.service.users.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -22,26 +23,40 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static dev.auth.lib.service.email.types.EmailFormatterFactory.createUserRecoveryPasswordEmailFormatter;
+import static dev.auth.lib.service.email.types.EmailFormatterFactory.createUserRegistrationEmailFormatter;
 import static java.util.Objects.isNull;
 
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private static final String INVALID_CREDENTIALS_ERROR = "Credentials provided by the user are not valid.";
     private static final String USER_NOT_FOUND_ERROR = "User not found.";
 
-    private final UserService userService;
-    private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
-    private final AuthenticationManager authenticationManager;
+    @Value("${server.host.front:local}")
+    private String hostFrontend;
+
+    private AuthenticationManager authenticationManager;
+    private UserService userService;
+    private JwtService jwtService;
+    private RefreshTokenService refreshTokenService;
+    private EmailService emailService;
+
+    public AuthServiceImpl(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService, RefreshTokenService refreshTokenService, EmailService emailService) {
+        this.authenticationManager = authenticationManager;
+        this.userService = userService;
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+        this.emailService = emailService;
+    }
 
     @Transactional
     @Override
     public void signUp(User user) {
-       userService.createUser(user);
+       User savedUser = userService.createUser(user);
+       emailService.sendEmail(user.getEmail(), createUserRegistrationEmailFormatter(savedUser, hostFrontend));
     }
 
     @Override
@@ -107,7 +122,9 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void recoveryPassword(String email) {
-        userService.enableResetPassword(email);
+        User user = userService.enableResetPassword(email);
+        emailService.sendEmail(user.getEmail(), createUserRecoveryPasswordEmailFormatter(user, hostFrontend));
+
     }
 
     @Override
