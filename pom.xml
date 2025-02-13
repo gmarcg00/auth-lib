@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>dev</groupId>
 	<artifactId>auth.lib</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>auth.lib</name>
 	<description>Authentication library for Spring Boot applications</description>
 	<url/>
