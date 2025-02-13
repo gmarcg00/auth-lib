@@ -1,0 +1,157 @@
+{
+	"info": {
+		"_postman_id": "09c181ac-cdf8-4a09-9c1a-d441a8fa4307",
+		"name": "AUTH LIB",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "28332984"
+	},
+	"item": [
+		{
+			"name": "SIGN UP",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"test@mail.com\",\r\n    \"password\":\"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/users"
+			},
+			"response": []
+		},
+		{
+			"name": "ACTIVATE USER",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"test@mail.com\",\r\n    \"verification_code\": \"f0a0ddfc-1be5-497c-b3a8-a981a55d2ff5\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/activate"
+			},
+			"response": []
+		},
+		{
+			"name": "LOG IN",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"test@mail.com\",\r\n    \"password\":\"test12345\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/sessions"
+			},
+			"response": []
+		},
+		{
+			"name": "LOG OUT",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJyb2xlIjpbIlVTRVIiXSwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfVVNFUiJ9XSwic3ViIjoidGVzdEBtYWlsLmNvbSIsImlhdCI6MTczOTQ2Mjk1NywiZXhwIjoxNzM5NDYzMDc3fQ.GnG-kDecGjfYiEWDHU3OezIAWAPY4nkDb5tcE2g7c5Y_O6OuxOsqyeKGR70HQetX"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/auth/sessions"
+			},
+			"response": []
+		},
+		{
+			"name": "REFRESH TOKEN",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refresh_token\": \"f0ebea37-c9a7-4929-aac1-e9b19740c254\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/refresh-token"
+			},
+			"response": []
+		},
+		{
+			"name": "CHANGE PASSWORD",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJyb2xlIjpbIlVTRVIiXSwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfVVNFUiJ9XSwic3ViIjoidGVzdEBtYWlsLmNvbSIsImlhdCI6MTczOTQ2MzI4NCwiZXhwIjoxNzM5NDYzNDA0fQ.8HgqTpd-AeaiIAPK2CpNgOmS7EO3qj6EgvMZndagWNZEMZl7fTVqC-pvXuoavg7F"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"password\": \"test1234\",\r\n    \"old_password\": \"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/change-password"
+			},
+			"response": []
+		},
+		{
+			"name": "RECOVERY PASSWORD",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"test@mail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/recovery-password"
+			},
+			"response": []
+		},
+		{
+			"name": "RECOVERY PASSWORD ACTIVATE",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"test@mail.com\",\r\n    \"verification_code\": \"88ade702-9d58-4cf0-bc7a-389fefe520ae\",\r\n    \"password\": \"test12345\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/recovery-password/activate"
+			},
+			"response": []
+		}
+	]
+}
