@@ -236,4 +236,33 @@ class AuthServiceImplTest {
         // Then
         verify(userService, times(1)).enableResetPassword(USER_MAIL);
     }
+
+    @Test
+    void testRecoveryPasswordActivateUserNotFound(){
+        // Given
+        doThrow(UserNotFoundException.class).when(userService).recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+
+        // When y Then
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> authService.recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD));
+        assertEquals("Credentials provided by the user are not valid.", exception.getMessage());
+    }
+
+    @Test
+    void testRecoveryPasswordActivateInvalidCode(){
+        // Given
+        doThrow(InvalidVerificationCodeException.class).when(userService).recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+
+        // When y Then
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> authService.recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD));
+        assertEquals("Credentials provided by the user are not valid.", exception.getMessage());
+    }
+
+    @Test
+    void testRecoveryPasswordActivateSuccessful(){
+        // When
+        authService.recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+
+        // Then
+        verify(userService, times(1)).recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+    }
 }

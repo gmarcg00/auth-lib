@@ -114,4 +114,15 @@ public class AuthController {
         authService.recoveryPassword(request.getEmail());
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+    /**
+     * Method to activate the password recovery
+     * @param request user access data
+     */
+    @PostMapping(value = "/recovery-password/activate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> recoveryPasswordActivate(@RequestBody @Validated RecoveryPasswordActivateRequest request){
+        authService.recoveryPasswordActivate(request.getEmail(), request.getVerificationCode(), request.getPassword());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

@@ -106,12 +106,30 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    public void recoveryPasswordActivate(String email, String verificationCode, String password) {
+        User user = getUser(email);
+        checkStatusIsActive(user);
+        checkVerificationCodeIsValid(user, verificationCode);
+
+        user.setVerificationCode(null);
+        addEncodedPassword(user, password);
+        userRepository.save(user);
+    }
+
     private User getUser(String email) {
         Optional<User> oUser = userRepository.findByEmail(email);
         return oUser.orElseThrow(() -> {
             log.info("El usuario no existe en el sistema.");
             return new UserNotFoundException("User not found.");
         });
+    }
+
+    private void checkStatusIsActive(User user) {
+        if (!UserStatusEnum.ACTIVE.getStatusCode().equals(user.getStatus().getName())) {
+            log.warn("El usuario {} no está activo.", user.getId());
+            throw new UserNotActiveException("User not available to password recovery.");
+        }
     }
 
     private void checkUserIsInactive(User user) {

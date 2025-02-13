@@ -356,4 +356,67 @@ class UserServiceImplTest {
         assertNotNull(user.getVerificationCode());
         assertEquals(PASSWORD,user.getPassword());
     }
+
+    @Test
+    void testRecoveryPasswordActivateCodeNull() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(UserStatusEnum.ACTIVE.getStatusCode())
+                .build();
+        User user = User.builder()
+                .email(EMAIL)
+                .password(PASSWORD)
+                .lastPasswordChange(Instant.MIN)
+                .verificationCode(null)
+                .status(status)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When && Then
+        assertThrows(InvalidVerificationCodeException.class, () -> userService.recoveryPasswordActivate(EMAIL, VERIFICATION_CODE, PASSWORD));
+    }
+
+    @Test
+    void testRecoveryPasswordActivateStatusNotActive(){
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(UserStatusEnum.VERIFICATION_PENDING.getStatusCode())
+                .build();
+        User user = User.builder()
+                .email(EMAIL)
+                .password(PASSWORD)
+                .lastPasswordChange(Instant.MIN)
+                .verificationCode(VERIFICATION_CODE)
+                .status(status)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When && Then
+        assertThrows(UserNotActiveException.class, () -> userService.recoveryPasswordActivate(EMAIL, VERIFICATION_CODE, PASSWORD));
+    }
+
+    @Test
+    void testRecoveryPasswordActivateSuccessful(){
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(UserStatusEnum.ACTIVE.getStatusCode())
+                .build();
+        User user = User.builder()
+                .email(EMAIL)
+                .password(PASSWORD)
+                .lastPasswordChange(Instant.MIN)
+                .verificationCode(VERIFICATION_CODE)
+                .status(status)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(PASSWORD)).thenReturn(ENCODED_PASSWORD);
+
+        // When
+        userService.recoveryPasswordActivate(EMAIL, VERIFICATION_CODE, PASSWORD);
+
+        // Then
+        verify(userRepository, times(1)).save(user);
+        assertEquals(UserStatusEnum.ACTIVE.getStatusCode(), user.getStatus().getName());
+        assertNull(user.getVerificationCode());
+    }
 }
