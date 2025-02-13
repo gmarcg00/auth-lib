@@ -30,6 +30,12 @@ public class AuthExceptionHandler {
     private static final String FORBIDDEN = "FORBIDDEN";
     private static final String BAD_REQUEST = "BAD_REQUEST";
 
+    @ExceptionHandler(ForbiddenResetPasswordException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ExceptionResponse handleForbiddenResetPasswordErrors(ForbiddenResetPasswordException ex) {
+        return new ExceptionResponse(FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(MandatoryPasswordException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleMandatoryPasswordErrors(MandatoryPasswordException ex) {

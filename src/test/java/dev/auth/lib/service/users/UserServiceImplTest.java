@@ -3,6 +3,7 @@ package dev.auth.lib.service.users;
 import dev.auth.lib.data.model.Role;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.model.UserStatus;
+import dev.auth.lib.data.model.UserStatusEnum;
 import dev.auth.lib.data.repository.RoleRepository;
 import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.data.repository.UserStatusRepository;
@@ -298,5 +299,61 @@ class UserServiceImplTest {
         // Then
         verify(userRepository, times(1)).save(any(User.class));
         closeable.close();
+    }
+
+    @Test
+    void testResetPasswordUserNotFound() {
+        // Given
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        // When
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> userService.enableResetPassword(EMAIL));
+
+        // Then
+        assertEquals("User not found.", exception.getMessage());
+    }
+
+    @Test
+    void testResetPasswordInactiveUser() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(UserStatusEnum.INACTIVE.getStatusCode())
+                .build();
+        User user = User.builder()
+                .email(EMAIL)
+                .password(PASSWORD)
+                .status(status)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When
+        ForbiddenResetPasswordException exception = assertThrows(ForbiddenResetPasswordException.class, () -> userService.enableResetPassword(EMAIL));
+
+        // Then
+        assertEquals("This user can not reset password.", exception.getMessage());
+    }
+
+    @Test
+    void testResetPasswordSuccessful() {
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(UserStatusEnum.ACTIVE.getStatusCode())
+                .build();
+        User user = User.builder()
+                .email(EMAIL)
+                .password(PASSWORD)
+                .lastPasswordChange(Instant.MIN)
+                .status(status)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When
+        userService.enableResetPassword(EMAIL);
+
+        // Then
+        verify(userRepository, times(1)).save(user);
+        assertEquals(UserStatusEnum.ACTIVE.getStatusCode(), user.getStatus().getName());
+        assertNotNull(user.getVerificationCode());
+        assertEquals(PASSWORD,user.getPassword());
     }
 }

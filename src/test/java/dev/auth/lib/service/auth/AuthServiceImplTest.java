@@ -220,4 +220,20 @@ class AuthServiceImplTest {
         // Then
         verify(userService, times(1)).changePassword(USER_MAIL, USER_PASSWORD, OLD_PASSWORD);
     }
+
+    @Test
+    void testRecoveryPasswordSuccessful() {
+        // Given
+        User serviceUser = User.builder()
+                .email(USER_MAIL)
+                .verificationCode(VERIFICATION_CODE)
+                .build();
+        when(userService.enableResetPassword(USER_MAIL)).thenReturn(serviceUser);
+
+        // When
+        authService.recoveryPassword(USER_MAIL);
+
+        // Then
+        verify(userService, times(1)).enableResetPassword(USER_MAIL);
+    }
 }

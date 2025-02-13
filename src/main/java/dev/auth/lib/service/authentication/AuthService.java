@@ -11,4 +11,5 @@ public interface AuthService {
     AuthServiceImpl.Tokens refreshToken(String token);
     void activateUser(String email, String verificationCode, String password);
     void changePassword(String email, String userPassword, String oldPassword);
+    void recoveryPassword(String email);
 }
