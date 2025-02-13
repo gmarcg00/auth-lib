@@ -2,10 +2,7 @@ package dev.auth.lib.controller;
 
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
-import dev.auth.lib.controller.model.request.ActivateUserRequest;
-import dev.auth.lib.controller.model.request.ChangePasswordRequest;
-import dev.auth.lib.controller.model.request.LoginRequest;
-import dev.auth.lib.controller.model.request.RefreshTokenRequest;
+import dev.auth.lib.controller.model.request.*;
 import dev.auth.lib.controller.model.response.LoginResponse;
 import dev.auth.lib.controller.model.response.RefreshTokenResponse;
 import dev.auth.lib.data.model.AccessToken;
@@ -196,4 +193,18 @@ class AuthControllerTest {
         verify(authService, times(1)).changePassword(EMAIL, PASSWORD, OLD_PASSWORD);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
+
+    @Test
+    void testRecoveryPasswordSuccessful() {
+        // Given
+        RecoveryPasswordRequest request = new RecoveryPasswordRequest(EMAIL);
+
+        // When
+        ResponseEntity<Void> response = authController.recoveryPassword(request);
+
+        // Then
+        verify(authService, times(1)).recoveryPassword(EMAIL);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
 }

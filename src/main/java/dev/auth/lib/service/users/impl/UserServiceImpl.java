@@ -90,12 +90,36 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    private void addEncodedPassword(User user, String password) {
+        if (password != null) {
+            user.setPassword(passwordEncoder.encode(password));
+            user.setLastPasswordChange(Instant.now());
+        }
+    }
+
+    @Override
+    public User enableResetPassword(String email) {
+        User user = getUser(email);
+        checkUserIsInactive(user);
+        addVerificationCode(user);
+        userRepository.save(user);
+        return user;
+    }
+
     private User getUser(String email) {
         Optional<User> oUser = userRepository.findByEmail(email);
         return oUser.orElseThrow(() -> {
             log.info("El usuario no existe en el sistema.");
             return new UserNotFoundException("User not found.");
         });
+    }
+
+    private void checkUserIsInactive(User user) {
+        UserStatusEnum status = UserStatusEnum.findByStatusCode(user.getStatus().getName());
+        if (status == UserStatusEnum.INACTIVE) {
+            log.warn("El usuario {} ha intentado restaurar una cuenta inactiva.", user.getId());
+            throw new ForbiddenResetPasswordException("This user can not reset password.");
+        }
     }
 
     private void checkStatusIsVerificationPending(User user) {
@@ -135,12 +159,7 @@ public class UserServiceImpl implements UserService {
         user.setVerificationCode(UUID.randomUUID().toString());
     }
 
-    private void addEncodedPassword(User user, String password) {
-        if (password != null) {
-            user.setPassword(passwordEncoder.encode(password));
-            user.setLastPasswordChange(Instant.now());
-        }
-    }
+
 
     private void addRoles(User user, List<String> roles) throws RoleNotFoundException {
         Set<Role> rolesSet = (user.getRoles() == null) ? new HashSet<>() : user.getRoles();

@@ -2,10 +2,7 @@ package dev.auth.lib.controller;
 
 import dev.auth.lib.controller.mappers.UsersMapper;
 import dev.auth.lib.controller.model.SignUpRequest;
-import dev.auth.lib.controller.model.request.ActivateUserRequest;
-import dev.auth.lib.controller.model.request.ChangePasswordRequest;
-import dev.auth.lib.controller.model.request.LoginRequest;
-import dev.auth.lib.controller.model.request.RefreshTokenRequest;
+import dev.auth.lib.controller.model.request.*;
 import dev.auth.lib.controller.model.response.LoginResponse;
 import dev.auth.lib.controller.model.response.RefreshTokenResponse;
 import dev.auth.lib.controller.security.CurrentPrincipal;
@@ -104,6 +101,17 @@ public class AuthController {
 
         String email = principal.getName();
         authService.changePassword(email, request.getPassword(), request.getOldPassword());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+    /**
+     * Method to recover the password
+     * @param request user access data
+     */
+    @PostMapping(value = "/recovery-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> recoveryPassword(@RequestBody @Validated RecoveryPasswordRequest request){
+        authService.recoveryPassword(request.getEmail());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

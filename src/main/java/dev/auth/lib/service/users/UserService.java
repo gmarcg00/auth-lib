@@ -13,4 +13,5 @@ public interface UserService {
     Optional<User> findByEmail(String username);
     void activateUser(String email, String verificationCode, String password);
     void changePassword(String email, String newPassword, String oldPassword);
+    User enableResetPassword(String email);
 }

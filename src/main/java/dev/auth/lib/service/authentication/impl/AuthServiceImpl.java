@@ -104,6 +104,12 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Transactional
+    @Override
+    public void recoveryPassword(String email) {
+        userService.enableResetPassword(email);
+    }
+
     private AuthServiceImpl.Tokens generateTokens(User user) {
         checkIfUserIsActive(user);
         AccessToken accessToken = jwtService.generateAccessToken(user);
