@@ -110,6 +110,15 @@ public class AuthServiceImpl implements AuthService {
         userService.enableResetPassword(email);
     }
 
+    @Override
+    public void recoveryPasswordActivate(String email, String verificationCode, String password) {
+        try {
+            userService.recoveryPasswordActivate(email, verificationCode, password);
+        } catch (UserNotFoundException | InvalidVerificationCodeException e) {
+            throw new InvalidCredentialsException(INVALID_CREDENTIALS_ERROR);
+        }
+    }
+
     private AuthServiceImpl.Tokens generateTokens(User user) {
         checkIfUserIsActive(user);
         AccessToken accessToken = jwtService.generateAccessToken(user);

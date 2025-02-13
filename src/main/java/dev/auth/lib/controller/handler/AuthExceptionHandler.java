@@ -36,6 +36,12 @@ public class AuthExceptionHandler {
         return new ExceptionResponse(FORBIDDEN, ex.getMessage());
     }
 
+    @ExceptionHandler(UserNotActiveException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleUserNotActiveErrors(UserNotActiveException ex) {
+        return new ExceptionResponse(BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(MandatoryPasswordException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleMandatoryPasswordErrors(MandatoryPasswordException ex) {

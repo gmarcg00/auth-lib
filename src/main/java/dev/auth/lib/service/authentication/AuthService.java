@@ -12,4 +12,5 @@ public interface AuthService {
     void activateUser(String email, String verificationCode, String password);
     void changePassword(String email, String userPassword, String oldPassword);
     void recoveryPassword(String email);
+    void recoveryPasswordActivate(String email, String verificationCode, String password);
 }

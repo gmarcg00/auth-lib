@@ -207,4 +207,17 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
+    @Test
+    void testRecoveryPasswordActivateSuccessful() {
+        // Given
+        RecoveryPasswordActivateRequest request = new RecoveryPasswordActivateRequest(EMAIL, VERIFICATION_CODE, PASSWORD);
+
+        // When
+        ResponseEntity<Void> response = authController.recoveryPasswordActivate(request);
+
+        // Then
+        verify(authService, times(1)).recoveryPasswordActivate(EMAIL, VERIFICATION_CODE, PASSWORD);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
 }

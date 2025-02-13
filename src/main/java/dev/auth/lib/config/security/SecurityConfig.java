@@ -50,6 +50,7 @@ public class SecurityConfig {
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/refresh-token").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/activate").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.POST   , "/auth/recovery-password").permitAll();
+                    authReqConfig.requestMatchers(HttpMethod.POST, "/auth/recovery-password/activate").permitAll();
                     authReqConfig.requestMatchers(HttpMethod.OPTIONS,"/**").permitAll();
                     authReqConfig.anyRequest().authenticated();
                 })

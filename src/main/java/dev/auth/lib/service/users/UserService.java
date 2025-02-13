@@ -14,4 +14,5 @@ public interface UserService {
     void activateUser(String email, String verificationCode, String password);
     void changePassword(String email, String newPassword, String oldPassword);
     User enableResetPassword(String email);
+    void recoveryPasswordActivate(String email, String verificationCode, String password);
 }
