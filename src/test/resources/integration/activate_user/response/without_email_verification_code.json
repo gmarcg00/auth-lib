@@ -1,0 +1,8 @@
+{
+  "code": "BAD_REQUEST",
+  "message": "INPUT_VALIDATION_ERROR",
+  "violations": [
+    "email must not be blank",
+    "verificationCode must not be blank"
+  ]
+}

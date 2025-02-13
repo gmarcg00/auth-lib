@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: auth-lib
+  datasource:
+    url: ${DATASOURCE_URL}
+    driverClassName: org.postgresql.Driver
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  jpa:
+    show-sql: ${SHOW_SQL:false}
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.DefaultNamingStrategy
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    from: ${MAIL_FROM}
+
+security:
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN:'*'}
+
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-access-token: ${EXPIRATION_ACCESS_TOKEN}
+    expiration-refresh-token: ${EXPIRATION_REFRESH_TOKEN}
+
+info:
+  app:
+    title: ${INFO_APP_TITLE}
+
+server:
+  host:
+    front: ${SERVER_HOST_FRONT}

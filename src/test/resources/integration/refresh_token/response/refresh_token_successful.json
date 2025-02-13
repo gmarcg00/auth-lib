@@ -1,0 +1,6 @@
+{
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJyb2xlIjpbIlBVQkxJU0hFUiJdLCJhdXRob3JpdGllcyI6W3siYXV0aG9yaXR5IjoiVEVTVF9QRVJNSVNTSU9OIn0seyJhdXRob3JpdHkiOiJST0xFX1BVQkxJU0hFUiJ9XSwic3ViIjoiZmFrZS51c2VyQHRlbnRobWFuLmNvbSIsImlhdCI6MTczODc2NjM2OSwiZXhwIjoxNzM4NzY2NDg5fQ.YGd8zZnSc63sAebYN9O1H7S_G9jm7va3buTBnnLfHKDiluGDQUYxWgxGmsDvGGyF",
+  "expiration_date": "2025-02-05 14:41:29",
+  "token_type": "Bearer",
+  "refresh_token": "a6fbf83b-3eae-4417-b9e4-7c8b858e5451"
+}
