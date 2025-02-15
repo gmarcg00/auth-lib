@@ -95,7 +95,7 @@ class AuthServiceImplTest {
                 .roles(Set.of(role))
                 .verificationCode(VERIFICATION_CODE)
                 .build();
-        when(userService.createUser(inputUser)).thenReturn(databaseUser);
+        when(userService.createUser(inputUser,false)).thenReturn(databaseUser);
         UserRegistrationEmailFormatter emailFormatter = mock(UserRegistrationEmailFormatter.class);
         when(EmailFormatterFactory.createUserRegistrationEmailFormatter(databaseUser, null)).thenReturn(emailFormatter);
 
@@ -148,9 +148,47 @@ class AuthServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(inputUser);
         AuthServiceImpl.Tokens mockTokens = mockTokenGeneration(inputUser);
 
-        // When y Given
+        // When & Then
         AuthServiceImpl.Tokens tokens = authService.login(USER_TEST, USER_PASSWORD, REQUEST_URI);
         assertEquals(tokens, mockTokens);
+
+        ac.close();
+    }
+
+    @Test
+    void testExternalLoginSavedUser() {
+        //Given
+        when(userService.findByEmail(USER_MAIL)).thenReturn(Optional.of(inputUser));
+        AuthServiceImpl.Tokens mockTokens = mockTokenGeneration(inputUser);
+
+        // When & Then
+        AuthServiceImpl.Tokens tokens = authService.externalLogin(USER_MAIL).get();
+        assertEquals(tokens, mockTokens);
+    }
+
+    @Test
+    void testExternalLoginUnsavedUser() throws Exception{
+        //Given
+        AutoCloseable ac = mockStatic(EmailFormatterFactory.class);
+        Role role = new Role();
+        role.setName(USER_ROLE);
+        User databaseUser = User.builder()
+                .password(USER_PASSWORD)
+                .email(USER_MAIL)
+                .roles(Set.of(role))
+                .verificationCode(VERIFICATION_CODE)
+                .build();
+        when(userService.findByEmail(USER_MAIL)).thenReturn(Optional.empty());
+        when(userService.createUser(any(User.class), eq(true))).thenReturn(databaseUser);
+        UserRegistrationEmailFormatter emailFormatter = mock(UserRegistrationEmailFormatter.class);
+        when(EmailFormatterFactory.createUserRegistrationEmailFormatter(databaseUser, null)).thenReturn(emailFormatter);
+
+        //When
+        var userTokens = authService.externalLogin(USER_MAIL);
+
+        //Then
+        assertEquals(Optional.empty(), userTokens);
+        verify(emailService, times(1)).sendEmail(USER_MAIL, emailFormatter);
 
         ac.close();
     }

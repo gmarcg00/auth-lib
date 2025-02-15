@@ -9,7 +9,7 @@ public interface UserService {
     String DEFAULT_ROLE = "USER";
     UserStatusEnum DEFAULT_STATUS = UserStatusEnum.VERIFICATION_PENDING;
 
-    User createUser(User user);
+    User createUser(User user, boolean external);
     Optional<User> findByEmail(String username);
     void activateUser(String email, String verificationCode, String password);
     void changePassword(String email, String newPassword, String oldPassword);

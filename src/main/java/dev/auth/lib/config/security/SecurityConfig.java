@@ -1,7 +1,10 @@
 package dev.auth.lib.config.security;
 
+import dev.auth.lib.authentication.CustomAuthenticationEntryPoint;
+import dev.auth.lib.authentication.CustomAuthenticationSuccessHandler;
 import dev.auth.lib.authentication.provider.BasicAuthProvider;
 import dev.auth.lib.config.security.filter.JwtAuthenticationFilter;
+import dev.auth.lib.service.authentication.AuthService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +14,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,9 +35,12 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(BasicAuthProvider basicAuthProvider, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    private final AuthService authService;
+
+    public SecurityConfig(BasicAuthProvider basicAuthProvider, JwtAuthenticationFilter jwtAuthenticationFilter, AuthService authService) {
         this.basicAuthProvider = basicAuthProvider;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.authService = authService;
     }
 
     @Bean
@@ -54,7 +62,19 @@ public class SecurityConfig {
                     authReqConfig.requestMatchers(HttpMethod.OPTIONS,"/**").permitAll();
                     authReqConfig.anyRequest().authenticated();
                 })
+                .oauth2Login(oauth2Login -> oauth2Login.successHandler(authenticationSuccessHandler()))
+                .exceptionHandling(handler -> handler.authenticationEntryPoint(authenticationEntryPoint()))
                 .build();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler(){
+        return new CustomAuthenticationSuccessHandler(authService);
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint(){
+        return new CustomAuthenticationEntryPoint();
     }
 
     private UrlBasedCorsConfigurationSource corsConfigurationSource() {

@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void signUp(User user) {
-       User savedUser = userService.createUser(user);
+       User savedUser = userService.createUser(user,false);
        emailService.sendEmail(user.getEmail(), createUserRegistrationEmailFormatter(savedUser, hostFrontend));
     }
 
@@ -73,6 +73,18 @@ public class AuthServiceImpl implements AuthService {
         }
         User user = (User) authentication.getPrincipal();
         return generateTokens(user);
+    }
+
+    @Override
+    public Optional<Tokens> externalLogin(String email) {
+        var opUser = userService.findByEmail(email);
+        if(opUser.isPresent()) return Optional.of(generateTokens(opUser.get()));
+        User user = User.builder()
+                .email(email)
+                .build();
+        User savedUser = userService.createUser(user,true);
+        emailService.sendEmail(user.getEmail(), createUserRegistrationEmailFormatter(savedUser, hostFrontend));
+        return Optional.empty();
     }
 
     @Transactional
