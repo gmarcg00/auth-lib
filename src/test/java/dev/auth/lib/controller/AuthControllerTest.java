@@ -104,6 +104,31 @@ class AuthControllerTest {
         assertEquals("Bearer", response.getTokenType());
     }
 
+    @Test
+    void testExternalLogin(){
+        // Given
+        ExternalLoginRequest request = new ExternalLoginRequest("code");
+        User user = mock(User.class);
+        AccessToken accessToken = new AccessToken(ACCESS_TOKEN, EXPIRATION_DATE, 120L, user);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(REFRESH_TOKEN)
+                .build();
+        when(authService.externalLogin("code")).thenReturn(new AuthServiceImpl.Tokens(accessToken, refreshToken));
+        when(UsersMapper.toLoginResponse(any())).thenReturn(LoginResponse.builder()
+                .token(ACCESS_TOKEN)
+                .refreshToken(REFRESH_TOKEN)
+                .build());
+
+        // When
+        ResponseEntity<LoginResponse> responseEntity = authController.externalLogin(request);
+
+        // Then
+        LoginResponse response = responseEntity.getBody();
+        assertNotNull(response);
+        assertEquals(ACCESS_TOKEN, response.getToken());
+        assertEquals(REFRESH_TOKEN, response.getRefreshToken());
+    }
+
 
     @Test
     void testLogout() throws Exception {

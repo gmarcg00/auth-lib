@@ -31,6 +31,23 @@ public class AuthExceptionHandler {
     private static final String BAD_REQUEST = "BAD_REQUEST";
     private static final String INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
 
+    @ExceptionHandler(ExchangeCodeExpiredException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleExchangeCodeExpiredException(ExchangeCodeExpiredException ex) {
+        return new ExceptionResponse(BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidExchangeCodeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleEntityNotFoundException(InvalidExchangeCodeException ex) {
+        return new ExceptionResponse(BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ExchangeCodeGenerationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ExceptionResponse handleExchangeCodeGenerationException(ExchangeCodeGenerationException ex) {
+        return new ExceptionResponse(INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)

@@ -2,6 +2,7 @@ package dev.auth.lib.service.auth;
 
 import dev.auth.lib.data.model.*;
 import dev.auth.lib.exception.*;
+import dev.auth.lib.service.authentication.ExchangeCodeService;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
 import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
@@ -60,6 +61,9 @@ class AuthServiceImplTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private ExchangeCodeService exchangeCodeService;
 
     private AutoCloseable closeable;
 
@@ -156,18 +160,23 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void testExternalLoginSavedUser() {
+    void testExternalAccessSavedUser() {
         //Given
+        ExchangeSessionCode exchangeSessionCode = ExchangeSessionCode.builder()
+                .code("code")
+                .user(inputUser)
+                .expirationDate(Instant.now())
+                .build();
         when(userService.findByEmail(USER_MAIL)).thenReturn(Optional.of(inputUser));
-        AuthServiceImpl.Tokens mockTokens = mockTokenGeneration(inputUser);
+        when(exchangeCodeService.create(inputUser)).thenReturn(exchangeSessionCode);
 
-        // When & Then
-        AuthServiceImpl.Tokens tokens = authService.externalLogin(USER_MAIL).get();
-        assertEquals(tokens, mockTokens);
+        // When
+        ExchangeSessionCode result = authService.externalAccess(USER_MAIL).get();
+        assertEquals(exchangeSessionCode,result);
     }
 
     @Test
-    void testExternalLoginUnsavedUser() throws Exception{
+    void testExternalAccessUnsavedUser() throws Exception{
         //Given
         AutoCloseable ac = mockStatic(EmailFormatterFactory.class);
         Role role = new Role();
@@ -184,7 +193,7 @@ class AuthServiceImplTest {
         when(EmailFormatterFactory.createUserRegistrationEmailFormatter(databaseUser, null)).thenReturn(emailFormatter);
 
         //When
-        var userTokens = authService.externalLogin(USER_MAIL);
+        var userTokens = authService.externalAccess(USER_MAIL);
 
         //Then
         assertEquals(Optional.empty(), userTokens);
@@ -331,5 +340,21 @@ class AuthServiceImplTest {
 
         // Then
         verify(userService, times(1)).recoveryPasswordActivate(USER_MAIL, VERIFICATION_CODE, USER_PASSWORD);
+    }
+
+    @Test
+    void testExternalLoginSuccessfully(){
+        //Given
+        ExchangeSessionCode exchangeSessionCode = ExchangeSessionCode.builder()
+                .code("code")
+                .user(inputUser)
+                .expirationDate(Instant.now())
+                .build();
+        when(exchangeCodeService.validate("code")).thenReturn(exchangeSessionCode);
+        AuthServiceImpl.Tokens mockTokens = mockTokenGeneration(inputUser);
+
+        //When && Then
+        AuthServiceImpl.Tokens tokens = authService.externalLogin("code");
+        assertEquals(tokens, mockTokens);
     }
 }

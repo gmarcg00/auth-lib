@@ -1,12 +1,8 @@
 package dev.auth.lib.authentication;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.auth.lib.data.model.AccessToken;
-import dev.auth.lib.data.model.RefreshToken;
+import dev.auth.lib.data.model.ExchangeSessionCode;
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.service.authentication.AuthService;
-import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
-import dev.auth.lib.utils.GlobalObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,8 +16,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Date;
+import java.time.Instant;
 
 import static org.mockito.Mockito.*;
 
@@ -52,37 +47,23 @@ class CustomAuthenticationSuccessHandlerTest {
     @Test
     void testOnAuthenticationSuccessUserFound() throws Exception {
         //Given
-        AutoCloseable ac = mockStatic(GlobalObjectMapper.class);
-        AccessToken accessToken = AccessToken.builder()
-                .token("token")
-                .expirationDate(new Date())
-                .expiresIn(3600L)
-                .user(new User())
-                .build();
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token("token")
-                .expirationDate(new Date())
-                .user(new User())
+        ExchangeSessionCode exchangeSessionCode = ExchangeSessionCode.builder()
+                .code("code")
+                .user(User.builder().email(USER_MAIL).build())
+                .expirationDate(Instant.now())
                 .build();
         OAuth2User oAuth2User = mock(OAuth2User.class);
-        PrintWriter writer = mock(PrintWriter.class);
         when(oAuth2User.getAttribute("email")).thenReturn(USER_MAIL);
-        AuthServiceImpl.Tokens tokens = new AuthServiceImpl.Tokens(accessToken, refreshToken);
-        when(authService.externalLogin(USER_MAIL)).thenReturn(java.util.Optional.of(tokens));
+        when(authService.externalAccess(USER_MAIL)).thenReturn(java.util.Optional.of(exchangeSessionCode));
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
-        when(GlobalObjectMapper.getInstance()).thenReturn(new ObjectMapper());
-        when(response.getWriter()).thenReturn(writer);
 
         //When
         authenticationSuccessHandler.onAuthenticationSuccess(request, response, authentication);
 
         //Then
-        verify(authService, times(1)).externalLogin(USER_MAIL);
-        verify(response, times(1)).setContentType("application/json");
-        verify(response, times(1)).setCharacterEncoding("UTF-8");
+        verify(authService, times(1)).externalAccess(USER_MAIL);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
 
-        ac.close();
     }
 
     @Test
@@ -91,13 +72,13 @@ class CustomAuthenticationSuccessHandlerTest {
         OAuth2User oAuth2User = mock(OAuth2User.class);
         when(oAuth2User.getAttribute("email")).thenReturn(USER_MAIL);
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
-        when(authService.externalLogin(USER_MAIL)).thenReturn(java.util.Optional.empty());
+        when(authService.externalAccess(USER_MAIL)).thenReturn(java.util.Optional.empty());
 
         //When
         authenticationSuccessHandler.onAuthenticationSuccess(request, response, authentication);
 
         //Then
-        verify(authService, times(1)).externalLogin(USER_MAIL);
+        verify(authService, times(1)).externalAccess(USER_MAIL);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_CREATED);
     }
 }

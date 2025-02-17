@@ -53,6 +53,18 @@ public class AuthController {
     }
 
     /**
+     * Method to log in a user through an external service
+     * @param request user access data
+     */
+    @PostMapping("/sessions/external")
+    public ResponseEntity<LoginResponse> externalLogin(@RequestBody @Validated ExternalLoginRequest request){
+
+        AuthServiceImpl.Tokens tokens = authService.externalLogin(request.getCode());
+        LoginResponse response = UsersMapper.toLoginResponse(tokens);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
      * Method to log out a user
      */
     @GetMapping(value = "/sessions")
@@ -125,4 +137,5 @@ public class AuthController {
         authService.recoveryPasswordActivate(request.getEmail(), request.getVerificationCode(), request.getPassword());
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
 }

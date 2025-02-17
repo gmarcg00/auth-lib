@@ -8,6 +8,7 @@ import dev.auth.lib.data.repository.RoleRepository;
 import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.data.repository.UserStatusRepository;
 import dev.auth.lib.exception.*;
+import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
 import dev.auth.lib.service.users.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

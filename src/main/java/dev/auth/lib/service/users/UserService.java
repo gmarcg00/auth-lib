@@ -2,6 +2,7 @@ package dev.auth.lib.service.users;
 
 import dev.auth.lib.data.model.User;
 import dev.auth.lib.data.model.UserStatusEnum;
+import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
 
 import java.util.Optional;
 

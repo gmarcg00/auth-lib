@@ -35,5 +35,6 @@ info:
     title: App-title
 
 server:
-  host:
-    front: http://localhost:8080
+  front:
+    host: http://localhost:8080
+    external-login-redirect-uri: /dashboard

@@ -2,12 +2,10 @@ package dev.auth.lib.service.authentication.impl;
 
 import dev.auth.lib.authentication.model.AuthenticationDTO;
 import dev.auth.lib.authentication.model.AuthenticationRequestDetails;
-import dev.auth.lib.data.model.AccessToken;
-import dev.auth.lib.data.model.RefreshToken;
-import dev.auth.lib.data.model.User;
-import dev.auth.lib.data.model.UserStatusEnum;
+import dev.auth.lib.data.model.*;
 import dev.auth.lib.exception.*;
 import dev.auth.lib.service.authentication.AuthService;
+import dev.auth.lib.service.authentication.ExchangeCodeService;
 import dev.auth.lib.service.authentication.JwtService;
 import dev.auth.lib.service.authentication.RefreshTokenService;
 import dev.auth.lib.service.email.EmailService;
@@ -43,13 +41,15 @@ public class AuthServiceImpl implements AuthService {
     private JwtService jwtService;
     private RefreshTokenService refreshTokenService;
     private EmailService emailService;
+    private ExchangeCodeService exchangeCodeService;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService, RefreshTokenService refreshTokenService, EmailService emailService) {
+    public AuthServiceImpl(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService, RefreshTokenService refreshTokenService, EmailService emailService,ExchangeCodeService exchangeCodeService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.emailService = emailService;
+        this.exchangeCodeService = exchangeCodeService;
     }
 
     @Transactional
@@ -76,9 +76,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Optional<Tokens> externalLogin(String email) {
+    public Optional<ExchangeSessionCode> externalAccess(String email) {
         var opUser = userService.findByEmail(email);
-        if(opUser.isPresent()) return Optional.of(generateTokens(opUser.get()));
+        if(opUser.isPresent()) return Optional.ofNullable(exchangeCodeService.create(opUser.get()));
         User user = User.builder()
                 .email(email)
                 .build();
@@ -136,7 +136,6 @@ public class AuthServiceImpl implements AuthService {
     public void recoveryPassword(String email) {
         User user = userService.enableResetPassword(email);
         emailService.sendEmail(user.getEmail(), createUserRecoveryPasswordEmailFormatter(user, hostFrontend));
-
     }
 
     @Override
@@ -146,6 +145,13 @@ public class AuthServiceImpl implements AuthService {
         } catch (UserNotFoundException | InvalidVerificationCodeException e) {
             throw new InvalidCredentialsException(INVALID_CREDENTIALS_ERROR);
         }
+    }
+
+    @Override
+    public Tokens externalLogin(String code) {
+        ExchangeSessionCode exchangeSessionCode = exchangeCodeService.validate(code);
+        exchangeCodeService.delete(exchangeSessionCode);
+        return generateTokens(exchangeSessionCode.getUser());
     }
 
     private AuthServiceImpl.Tokens generateTokens(User user) {
