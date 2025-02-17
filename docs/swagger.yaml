@@ -212,6 +212,19 @@ paths:
         500:
           $ref: '#/components/responses/InternalServerError'
 
+  /oauth2/authorization/google:
+    get:
+      tags:
+        - authentication
+      summary: Start log in operation through Google provider
+      responses:
+        302:
+          description: Redirection to google authorization server
+          content:
+            text/html:
+              schema:
+                type: string
+
 
 components:
   schemas:
@@ -321,3 +334,4 @@ components:
       in: header
       description: >-
         Enter the token with the `Bearer: ` prefix, e.g. "Bearer abcde12345".
+    
