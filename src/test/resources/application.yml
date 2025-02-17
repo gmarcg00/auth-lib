@@ -14,6 +14,13 @@ spring:
     username: spring
     password: boot
     from: admin@app.io
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 12345sfdasdas
+            client-secret: 12345sfdasdas
 
 security:
   jwt:
@@ -28,5 +35,6 @@ info:
     title: App-title
 
 server:
-  host:
-    front: http://localhost:8080
+  front:
+    host: http://localhost:8080
+    external-login-redirect-uri: /dashboard

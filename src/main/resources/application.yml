@@ -23,11 +23,17 @@ spring:
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     from: ${MAIL_FROM}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
 
 security:
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN:'*'}
-
   jwt:
     secret: ${JWT_SECRET}
     expiration-access-token: ${EXPIRATION_ACCESS_TOKEN}
@@ -38,5 +44,6 @@ info:
     title: ${INFO_APP_TITLE}
 
 server:
-  host:
-    front: ${SERVER_HOST_FRONT}
+  front:
+    host: ${SERVER_HOST_FRONT}
+    external-login-redirect-uri: ${SERVER_EXTERNAL_LOGIN_REDIRECT_URI}

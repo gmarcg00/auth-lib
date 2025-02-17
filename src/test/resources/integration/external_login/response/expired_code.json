@@ -1,0 +1,4 @@
+{
+  "code" : "BAD_REQUEST",
+  "message" : "Exchange code with code 0000-1111 has expired."
+}

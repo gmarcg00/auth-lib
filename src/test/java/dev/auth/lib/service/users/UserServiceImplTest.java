@@ -69,7 +69,7 @@ class UserServiceImplTest {
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         // When
-        UserWithSameUsernameException exception = assertThrows(UserWithSameUsernameException.class, () -> userService.createUser(user));
+        UserWithSameUsernameException exception = assertThrows(UserWithSameUsernameException.class, () -> userService.createUser(user,false));
 
         // Then
         assertEquals("This username exists in system.", exception.getMessage());
@@ -82,7 +82,7 @@ class UserServiceImplTest {
         User user = result.getFirst();
 
         // When
-        User savedUser = userService.createUser(user);
+        User savedUser = userService.createUser(user,false);
 
         // Then
         verify(userRepository, times(1)).save(any(User.class));
@@ -174,6 +174,7 @@ class UserServiceImplTest {
         User user = User.builder()
                 .status(status)
                 .verificationCode(VERIFICATION_CODE)
+                .externalUser(Boolean.FALSE)
                 .build();
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
@@ -192,6 +193,7 @@ class UserServiceImplTest {
                 .status(status)
                 .password(PASSWORD)
                 .verificationCode(VERIFICATION_CODE)
+                .externalUser(Boolean.FALSE)
                 .build();
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
@@ -210,6 +212,7 @@ class UserServiceImplTest {
                 .status(status)
                 .verificationCode(VERIFICATION_CODE)
                 .password(PASSWORD)
+                .externalUser(Boolean.FALSE)
                 .build();
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         UserStatus newStatus = UserStatus.builder()
@@ -236,6 +239,7 @@ class UserServiceImplTest {
         User user = User.builder()
                 .status(status)
                 .verificationCode(VERIFICATION_CODE)
+                .externalUser(Boolean.FALSE)
                 .build();
         when(passwordEncoder.encode(PASSWORD)).thenReturn(ENCODED_PASSWORD);
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
@@ -278,6 +282,21 @@ class UserServiceImplTest {
         // When y then
         InvalidPasswordException exception = assertThrows(InvalidPasswordException.class, () -> userService.changePassword(EMAIL, PASSWORD, OLD_PASSWORD));
         assertEquals("Invalid old password.", exception.getMessage());
+    }
+
+    @Test
+    void testChangePasswordExternalUser(){
+        // Given
+        User user = User.builder()
+                .email(EMAIL)
+                .password("$2a$12$y2LCCFGB/2l8FYX1ktrqHOsaYh6V7okXhMX4/ZG0B0RFwYgniRPJK")
+                .externalUser(true)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        //When && Then
+        InvalidUserTypeException exception = assertThrows(InvalidUserTypeException.class, () -> userService.changePassword(EMAIL, PASSWORD, OLD_PASSWORD));
+        assertEquals("User is not available for password change.", exception.getMessage());
     }
 
     @Test
@@ -331,6 +350,25 @@ class UserServiceImplTest {
 
         // Then
         assertEquals("This user can not reset password.", exception.getMessage());
+    }
+
+    @Test
+    void testResetPasswordExternalUser(){
+        // Given
+        UserStatus status = UserStatus.builder()
+                .name(UserStatusEnum.ACTIVE.getStatusCode())
+                .build();
+        User user = User.builder()
+                .email(EMAIL)
+                .password(PASSWORD)
+                .status(status)
+                .externalUser(true)
+                .build();
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        // When && Then
+        InvalidUserTypeException exception = assertThrows(InvalidUserTypeException.class, () -> userService.enableResetPassword(EMAIL));
+        assertEquals("User is not available for password recovery.", exception.getMessage());
     }
 
     @Test

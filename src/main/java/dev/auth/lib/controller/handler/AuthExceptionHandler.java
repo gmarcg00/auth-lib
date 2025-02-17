@@ -31,6 +31,36 @@ public class AuthExceptionHandler {
     private static final String BAD_REQUEST = "BAD_REQUEST";
     private static final String INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
 
+    @ExceptionHandler(ExchangeCodeExpiredException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleExchangeCodeExpiredException(ExchangeCodeExpiredException ex) {
+        return new ExceptionResponse(BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidExchangeCodeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleEntityNotFoundException(InvalidExchangeCodeException ex) {
+        return new ExceptionResponse(BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ExchangeCodeGenerationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ExceptionResponse handleExchangeCodeGenerationException(ExchangeCodeGenerationException ex) {
+        return new ExceptionResponse(INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ExceptionResponse handleAccessDeniedException(AccessDeniedException ex) {
+        return new ExceptionResponse(FORBIDDEN, "Access to resource not allowed.");
+    }
+
+    @ExceptionHandler(InvalidUserTypeException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ExceptionResponse handleInvalidUserTypeErrors(InvalidUserTypeException ex) {
+        return new ExceptionResponse(FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(ForbiddenResetPasswordException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ExceptionResponse handleForbiddenResetPasswordErrors(ForbiddenResetPasswordException ex) {
@@ -128,9 +158,4 @@ public class AuthExceptionHandler {
         return new ExceptionResponse(INVALID_CREDENTIALS, ex.getMessage());
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ExceptionResponse handleAccessDeniedException(AccessDeniedException ex) {
-        return new ExceptionResponse(FORBIDDEN, "Access to resource not allowed.");
-    }
 }
