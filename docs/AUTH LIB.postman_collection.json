@@ -152,6 +152,33 @@
 				"url": "http://localhost:8080/auth/recovery-password/activate"
 			},
 			"response": []
+		},
+		{
+			"name": "LOG IN WITH GRANT CODE",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"code\": \"753e050d-b8b6-4cc6-a358-fe9927fb10af\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/sessions/external"
+			},
+			"response": []
+		},
+		{
+			"name": "GOOGLE LOGIN INIT",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/oauth2/authorization/google"
+			},
+			"response": []
 		}
 	]
 }

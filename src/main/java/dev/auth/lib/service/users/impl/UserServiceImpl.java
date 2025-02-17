@@ -8,9 +8,9 @@ import dev.auth.lib.data.repository.RoleRepository;
 import dev.auth.lib.data.repository.UserRepository;
 import dev.auth.lib.data.repository.UserStatusRepository;
 import dev.auth.lib.exception.*;
+import dev.auth.lib.service.authentication.impl.AuthServiceImpl;
 import dev.auth.lib.service.users.UserService;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,21 +33,21 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public User createUser(User user) {
+    public User createUser(User user, boolean external) {
         try {
-            return createUser(user, List.of(DEFAULT_ROLE));
+            return createUser(user, List.of(DEFAULT_ROLE),external);
         } catch (RoleNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
-    private User createUser(User user, List<String> roles) throws RoleNotFoundException {
+    private User createUser(User user, List<String> roles, boolean external) throws RoleNotFoundException {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new UserWithSameUsernameException("This username exists in system.");
         }
 
         user.setCreationDate(Instant.now());
-        user.setExternalUser(false);
+        user.setExternalUser(external);
         addVerificationCode(user);
         addEncodedPassword(user, user.getPassword());
         addRoles(user, roles);
@@ -79,9 +79,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(String email, String newPassword, String oldPassword) {
         User user = getUser(email);
+        checkUserCanChangePassword(user);
         checkOldPassword(user, oldPassword);
         addEncodedPassword(user, newPassword);
         userRepository.save(user);
+    }
+
+    private void checkUserCanChangePassword(User user) {
+        if (Boolean.TRUE.equals(user.getExternalUser())) {
+            log.warn("El usuario {} no está disponible para iniciar el proceso de cambio de contraseña", user.getId());
+            throw new InvalidUserTypeException("User is not available for password change.");
+        }
     }
 
     private void checkOldPassword(User user, String oldPassword) {
@@ -102,15 +110,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public User enableResetPassword(String email) {
         User user = getUser(email);
+        checkUserCanRecoveryPassword(user);
         checkUserIsInactive(user);
         addVerificationCode(user);
         userRepository.save(user);
         return user;
     }
 
+
     @Override
     public void recoveryPasswordActivate(String email, String verificationCode, String password) {
         User user = getUser(email);
+        checkUserCanRecoveryPassword(user);
         checkStatusIsActive(user);
         checkVerificationCodeIsValid(user, verificationCode);
 
@@ -125,6 +136,13 @@ public class UserServiceImpl implements UserService {
             log.info("El usuario no existe en el sistema.");
             return new UserNotFoundException("User not found.");
         });
+    }
+
+    private void checkUserCanRecoveryPassword(User user) {
+        if (Boolean.TRUE.equals(user.getExternalUser())) {
+            log.warn("El usuario {} no está disponible para realizar el proceso de recuperación de contraseña", user.getId());
+            throw new InvalidUserTypeException("User is not available for password recovery.");
+        }
     }
 
     private void checkStatusIsActive(User user) {
@@ -162,7 +180,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkUserWithoutPasswordCanBeAdded(User user, String password) {
-        if (isNull(user.getPassword()) && isNull(password)) {
+        if (Boolean.TRUE.equals(!user.getExternalUser() && isNull(user.getPassword())) && isNull(password)) {
             log.warn("El usuario {} ha intentado activar una cuenta sin contraseña.", user.getId());
             throw new MandatoryPasswordException("Password is mandatory.");
         }
@@ -178,8 +196,6 @@ public class UserServiceImpl implements UserService {
     private void addVerificationCode(User user) {
         user.setVerificationCode(UUID.randomUUID().toString());
     }
-
-
 
     private void addRoles(User user, List<String> roles) throws RoleNotFoundException {
         Set<Role> rolesSet = (user.getRoles() == null) ? new HashSet<>() : user.getRoles();

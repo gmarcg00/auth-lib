@@ -25,5 +25,9 @@ INSERT INTO users (email, password, creation_date, last_password_change, externa
 INSERT INTO users (email, password, creation_date, last_password_change, external_user, status_id, verification_code) VALUES ('pending.user.no.password@tenthman.com', null, '2021-12-01 14:30:15', '2021-12-01 14:30:15', false, 1, '0000-1111');
 INSERT INTO users (email, password, creation_date, last_password_change, external_user, status_id) VALUES ('inactive.user.no.passwordr@tenthman.com', null, '2021-12-01 14:30:15', '2021-12-01 14:30:15', false, 3);
 
+-- Datos de códigos de sesión.
+INSERT INTO exchange_session_codes (code,expiration_date,user_id) VALUES ('0000-1111', '2021-12-01 14:30:15', 1);
+INSERT INTO exchange_session_codes (code,expiration_date,user_id) VALUES ('0000-1112', '2040-12-01 14:30:15', 1);
+
 -- Datos de relación entre usuarios y roles.
 INSERT INTO users_roles (user_id, role_id) VALUES (1, 1)
